@@ -520,9 +520,49 @@
     }
 
     function addMessageToDOM(message) {
-      const messagesDiv = document.getElementById('messages');
-      const messageDiv = document.createElement('div');
-      messageDiv.className = 'message';
+  const messagesDiv = document.getElementById('messages');
+  const messageDiv = document.createElement('div');
+  messageDiv.className = 'message';
+
+  const timestamp = message.timestamp ? 
+    new Date(message.timestamp.seconds * 1000).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) 
+    : 'Maintenant';
+
+  let content = '';
+
+  if (message.imageUrl) {
+    const isGif = message.fileType === 'image/gif';
+    content = `
+      <div class="timestamp">${timestamp}</div>
+      <div class="username">${message.username}:</div>
+      <div>
+        <img src="${message.imageUrl}" 
+             alt="${message.fileName || 'Image'}" 
+             style="max-width:300px; max-height:300px; border:3px solid lime; border-radius:10px; cursor:pointer;"
+             onclick="openImageModal('${message.imageUrl}', '${message.fileName || 'Image'}')">
+        <br><small style="color:#666;">📷 ${message.fileName || 'Image'} ${isGif ? '(GIF)' : ''}</small>
+      </div>
+    `;
+  } else {
+    content = `
+      <div class="timestamp">${timestamp}</div>
+      <div class="username">${message.username}:</div>
+      <div>${escapeHtml(message.text || '')}</div>
+    `;
+  }
+
+  // Ajouter les boutons modifier / supprimer pour le proprio ou admin
+  if (currentUser && (currentUser.uid === message.userId || currentUser.uid === "5yv18zQAJBZZUIwKbFiURFQeFit2")) {
+    content += `
+      <button onclick="editMessagePrompt('${message.id}','${message.text || ''}')">✏️</button>
+      <button onclick="deleteMessage('${message.id}')">🗑️</button>
+    `;
+  }
+
+  messageDiv.innerHTML = content;
+  messagesDiv.appendChild(messageDiv);
+}
+
       
       const timestamp = message.timestamp ? 
         new Date(message.timestamp.seconds * 1000).toLocaleTimeString('fr-FR', {
@@ -645,6 +685,7 @@ function editMessagePrompt(id,currentText){
   </script>
 </body>
 </html>
+
 
 
 
