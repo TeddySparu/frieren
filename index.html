@@ -269,7 +269,7 @@
 
   <!-- Firebase SDK -->
   <script type="module">
-    // Configuration Firebase - À REMPLACER par tes propres clés
+    // Import Firebase depuis CDN
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { 
       getAuth, 
@@ -290,32 +290,20 @@
       limit
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-    // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyBhyxeEHBKrhuECJKt2d7NwSN7lcv39IX0",
-  authDomain: "frieren-2-79e0c.firebaseapp.com",
-  projectId: "frieren-2-79e0c",
-  storageBucket: "frieren-2-79e0c.firebasestorage.app",
-  messagingSenderId: "861104473745",
-  appId: "1:861104473745:web:377da7b0daaf5570572130"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
-    // Initialisation Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    // Configuration Firebase (TES VRAIES CLÉS)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBhyxeEHBKrhuECJKt2d7NwSN7lcv39IX0",
+      authDomain: "frieren-2-79e0c.firebaseapp.com",
+      projectId: "frieren-2-79e0c",
+      storageBucket: "frieren-2-79e0c.firebasestorage.app",
+      messagingSenderId: "861104473745",
+      appId: "1:861104473745:web:377da7b0daaf5570572130"
+    };
 
     // Variables globales
     let currentUser = null;
     let messagesListener = null;
+    let app, auth, db;
 
     // Éléments DOM
     const loadingDiv = document.getElementById('loading');
@@ -327,25 +315,42 @@ const app = initializeApp(firebaseConfig);
     const welcomeMsg = document.getElementById('welcome-msg');
     const authError = document.getElementById('auth-error');
 
-    // Initialisation
-    document.addEventListener('DOMContentLoaded', function() {
-      // Écouteur d'état d'authentification
-      onAuthStateChanged(auth, (user) => {
-        loadingDiv.classList.add('hidden');
-        appDiv.classList.remove('hidden');
+    // Initialisation Firebase
+    async function initFirebase() {
+      try {
+        console.log('🔥 Initialisation Firebase...');
         
-        if (user) {
-          currentUser = user;
-          handleUserLoggedIn(user);
-        } else {
-          currentUser = null;
-          handleUserLoggedOut();
-        }
-      });
+        // Initialiser Firebase
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        
+        console.log('✅ Firebase initialisé avec succès');
+        
+        // Écouteur d'état d'authentification
+        onAuthStateChanged(auth, (user) => {
+          console.log('👤 État auth changé:', user ? user.email : 'Non connecté');
+          
+          loadingDiv.classList.add('hidden');
+          appDiv.classList.remove('hidden');
+          
+          if (user) {
+            currentUser = user;
+            handleUserLoggedIn(user);
+          } else {
+            currentUser = null;
+            handleUserLoggedOut();
+          }
+        });
 
-      // Formulaires d'authentification
-      setupAuthForms();
-    });
+        // Setup des formulaires
+        setupAuthForms();
+        
+      } catch (error) {
+        console.error('❌ Erreur Firebase:', error);
+        loadingDiv.innerHTML = '❌ Erreur de connexion cosmique: ' + error.message;
+      }
+    }
 
     function handleUserLoggedIn(user) {
       authNav.classList.add('hidden');
@@ -384,10 +389,13 @@ const app = initializeApp(firebaseConfig);
         const password = document.getElementById('register-password').value;
         
         try {
+          console.log('📝 Tentative d\'inscription...');
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           await updateProfile(userCredential.user, { displayName: username });
+          console.log('✅ Inscription réussie');
           showSection('home');
         } catch (error) {
+          console.error('❌ Erreur inscription:', error);
           showError('Erreur lors de l\'inscription: ' + error.message);
         }
       });
@@ -401,9 +409,12 @@ const app = initializeApp(firebaseConfig);
         const password = document.getElementById('login-password').value;
         
         try {
+          console.log('🚪 Tentative de connexion...');
           await signInWithEmailAndPassword(auth, email, password);
+          console.log('✅ Connexion réussie');
           showSection('home');
         } catch (error) {
+          console.error('❌ Erreur connexion:', error);
           showError('Erreur de connexion: ' + error.message);
         }
       });
@@ -418,6 +429,7 @@ const app = initializeApp(firebaseConfig);
       );
 
       messagesListener = onSnapshot(q, (snapshot) => {
+        console.log('💬 Messages reçus:', snapshot.size);
         messagesDiv.innerHTML = '';
         const messages = [];
         
@@ -450,6 +462,7 @@ const app = initializeApp(firebaseConfig);
       if (!message) return;
       
       try {
+        console.log('📤 Envoi du message...');
         await addDoc(collection(db, 'messages'), {
           text: message,
           username: currentUser.displayName || currentUser.email.split('@')[0],
@@ -458,7 +471,9 @@ const app = initializeApp(firebaseConfig);
         });
         
         input.value = '';
+        console.log('✅ Message envoyé');
       } catch (error) {
+        console.error('❌ Erreur envoi:', error);
         showError('Erreur lors de l\'envoi: ' + error.message);
       }
     }
@@ -485,8 +500,11 @@ const app = initializeApp(firebaseConfig);
 
     async function logout() {
       try {
+        console.log('🚪 Déconnexion...');
         await signOut(auth);
+        console.log('✅ Déconnecté');
       } catch (error) {
+        console.error('❌ Erreur déconnexion:', error);
         showError('Erreur de déconnexion: ' + error.message);
       }
     }
@@ -510,6 +528,9 @@ const app = initializeApp(firebaseConfig);
     // Rendre les fonctions globales
     window.sendMessage = sendMessage;
     window.logout = logout;
+
+    // Démarrer l'initialisation
+    initFirebase();
   </script>
 
   <script>
@@ -530,5 +551,4 @@ const app = initializeApp(firebaseConfig);
     window.showSection = showSection;
   </script>
 </body>
-
 </html>
