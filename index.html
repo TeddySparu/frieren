@@ -130,12 +130,19 @@
       float:right;
     }
     #message-input{
-      width:70%;
+      width:50%;
       display:inline-block;
     }
     #send-btn{
-      width:25%;
+      width:20%;
       display:inline-block;
+      font-size:18px;
+    }
+    .image-btn{
+      width:20%;
+      display:inline-block;
+      font-size:18px;
+      background:#ff69b4;
     }
     .user-info{
       background:rgba(255,255,255,0.3);
@@ -256,7 +263,9 @@
           <div id="messages"></div>
           <div>
             <input type="text" id="message-input" placeholder="Partage ta sagesse cosmique..." maxlength="500">
-            <button id="send-btn" onclick="sendMessage()">🚀 Envoyer</button>
+            <input type="file" id="image-input" accept="image/*" style="display:none;">
+            <button class="image-btn" onclick="document.getElementById('image-input').click()">📷</button>
+            <button id="send-btn" onclick="sendMessage()">🚀</button>
           </div>
         </div>
       </div>
@@ -289,8 +298,14 @@
       serverTimestamp,
       limit
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import {
+      getStorage,
+      ref,
+      uploadBytes,
+      getDownloadURL
+    } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
-    // Configuration Firebase (TES VRAIES CLÉS)
+    // Configuration Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBhyxeEHBKrhuECJKt2d7NwSN7lcv39IX0",
       authDomain: "frieren-2-79e0c.firebaseapp.com",
@@ -303,7 +318,7 @@
     // Variables globales
     let currentUser = null;
     let messagesListener = null;
-    let app, auth, db;
+    let app, auth, db, storage;
 
     // Éléments DOM
     const loadingDiv = document.getElementById('loading');
@@ -320,16 +335,15 @@
       try {
         console.log('🔥 Initialisation Firebase...');
         
-        // Initialiser Firebase
         app = initializeApp(firebaseConfig);
         auth = getAuth(app);
         db = getFirestore(app);
+        storage = getStorage(app);
         
-        console.log('✅ Firebase initialisé avec succès');
+        console.log('✅ Firebase initialisé');
         
-        // Écouteur d'état d'authentification
         onAuthStateChanged(auth, (user) => {
-          console.log('👤 État auth changé:', user ? user.email : 'Non connecté');
+          console.log('👤 Auth état:', user ? user.email : 'Déconnecté');
           
           loadingDiv.classList.add('hidden');
           appDiv.classList.remove('hidden');
@@ -343,12 +357,11 @@
           }
         });
 
-        // Setup des formulaires
         setupAuthForms();
         
       } catch (error) {
         console.error('❌ Erreur Firebase:', error);
-        loadingDiv.innerHTML = '❌ Erreur de connexion cosmique: ' + error.message;
+        loadingDiv.innerHTML = '❌ Erreur: ' + error.message;
       }
     }
 
@@ -359,7 +372,7 @@
       userInfo.classList.remove('hidden');
       
       const displayName = user.displayName || user.email.split('@')[0];
-      welcomeMsg.textContent = `🌟 ${displayName} - Disciple cosmique connecté !`;
+      welcomeMsg.textContent = `🌟 ${displayName} - Connecté !`;
       
       setupChatListener();
     }
@@ -379,7 +392,6 @@
     }
 
     function setupAuthForms() {
-      // Inscription
       document.getElementById('register-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         hideError();
@@ -389,18 +401,14 @@
         const password = document.getElementById('register-password').value;
         
         try {
-          console.log('📝 Tentative d\'inscription...');
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           await updateProfile(userCredential.user, { displayName: username });
-          console.log('✅ Inscription réussie');
           showSection('home');
         } catch (error) {
-          console.error('❌ Erreur inscription:', error);
-          showError('Erreur lors de l\'inscription: ' + error.message);
+          showError('Erreur inscription: ' + error.message);
         }
       });
 
-      // Connexion
       document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         hideError();
@@ -409,13 +417,10 @@
         const password = document.getElementById('login-password').value;
         
         try {
-          console.log('🚪 Tentative de connexion...');
           await signInWithEmailAndPassword(auth, email, password);
-          console.log('✅ Connexion réussie');
           showSection('home');
         } catch (error) {
-          console.error('❌ Erreur connexion:', error);
-          showError('Erreur de connexion: ' + error.message);
+          showError('Erreur connexion: ' + error.message);
         }
       });
     }
@@ -429,7 +434,6 @@
       );
 
       messagesListener = onSnapshot(q, (snapshot) => {
-        console.log('💬 Messages reçus:', snapshot.size);
         messagesDiv.innerHTML = '';
         const messages = [];
         
@@ -437,7 +441,6 @@
           messages.push({ id: doc.id, ...doc.data() });
         });
         
-        // Afficher dans l'ordre chronologique
         messages.reverse().forEach((message) => {
           addMessageToDOM(message);
         });
@@ -445,10 +448,16 @@
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
       });
 
-      // Envoi de message avec Enter
       document.getElementById('message-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
           sendMessage();
+        }
+      });
+
+      document.getElementById('image-input').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          sendImageMessage(file);
         }
       });
     }
@@ -462,7 +471,6 @@
       if (!message) return;
       
       try {
-        console.log('📤 Envoi du message...');
         await addDoc(collection(db, 'messages'), {
           text: message,
           username: currentUser.displayName || currentUser.email.split('@')[0],
@@ -471,10 +479,43 @@
         });
         
         input.value = '';
-        console.log('✅ Message envoyé');
       } catch (error) {
-        console.error('❌ Erreur envoi:', error);
-        showError('Erreur lors de l\'envoi: ' + error.message);
+        showError('Erreur envoi: ' + error.message);
+      }
+    }
+
+    async function sendImageMessage(file) {
+      if (!currentUser) return;
+      
+      if (file.size > 5 * 1024 * 1024) {
+        showError('Image trop lourde (max 5MB)');
+        return;
+      }
+
+      try {
+        console.log('📤 Upload image...');
+        
+        const fileName = `images/${Date.now()}_${file.name}`;
+        const imageRef = ref(storage, fileName);
+        
+        const snapshot = await uploadBytes(imageRef, file);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        
+        await addDoc(collection(db, 'messages'), {
+          imageUrl: downloadURL,
+          fileName: file.name,
+          fileType: file.type,
+          username: currentUser.displayName || currentUser.email.split('@')[0],
+          userId: currentUser.uid,
+          timestamp: serverTimestamp()
+        });
+        
+        document.getElementById('image-input').value = '';
+        console.log('✅ Image envoyée');
+        
+      } catch (error) {
+        console.error('❌ Erreur upload:', error);
+        showError('Erreur upload: ' + error.message);
       }
     }
 
@@ -489,23 +530,38 @@
           minute: '2-digit'
         }) : 'Maintenant';
       
-      messageDiv.innerHTML = `
-        <div class="timestamp">${timestamp}</div>
-        <div class="username">${message.username}:</div>
-        <div>${escapeHtml(message.text)}</div>
-      `;
+      let content = '';
       
+      if (message.imageUrl) {
+        const isGif = message.fileType === 'image/gif';
+        content = `
+          <div class="timestamp">${timestamp}</div>
+          <div class="username">${message.username}:</div>
+          <div>
+            <img src="${message.imageUrl}" 
+                 alt="${message.fileName || 'Image'}" 
+                 style="max-width:300px; max-height:300px; border:3px solid lime; border-radius:10px; cursor:pointer;"
+                 onclick="openImageModal('${message.imageUrl}', '${message.fileName || 'Image'}')">
+            <br><small style="color:#666;">📷 ${message.fileName || 'Image'} ${isGif ? '(GIF)' : ''}</small>
+          </div>
+        `;
+      } else {
+        content = `
+          <div class="timestamp">${timestamp}</div>
+          <div class="username">${message.username}:</div>
+          <div>${escapeHtml(message.text || '')}</div>
+        `;
+      }
+      
+      messageDiv.innerHTML = content;
       messagesDiv.appendChild(messageDiv);
     }
 
     async function logout() {
       try {
-        console.log('🚪 Déconnexion...');
         await signOut(auth);
-        console.log('✅ Déconnecté');
       } catch (error) {
-        console.error('❌ Erreur déconnexion:', error);
-        showError('Erreur de déconnexion: ' + error.message);
+        showError('Erreur déconnexion: ' + error.message);
       }
     }
 
@@ -525,31 +581,50 @@
       return div.innerHTML;
     }
 
-    // Rendre les fonctions globales
+    function openImageModal(imageUrl, fileName) {
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8); display: flex; justify-content: center;
+        align-items: center; z-index: 9999; cursor: pointer;
+      `;
+      
+      const img = document.createElement('img');
+      img.src = imageUrl;
+      img.alt = fileName;
+      img.style.cssText = `
+        max-width: 90%; max-height: 90%; border: 5px solid lime;
+        border-radius: 15px; cursor: default;
+      `;
+      
+      modal.appendChild(img);
+      document.body.appendChild(modal);
+      
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          document.body.removeChild(modal);
+        }
+      });
+    }
+
     window.sendMessage = sendMessage;
-    window.sendImageMessage = sendImageMessage;
     window.logout = logout;
     window.openImageModal = openImageModal;
 
-    // Démarrer l'initialisation
     initFirebase();
   </script>
 
   <script>
-    // Navigation
     function showSection(sectionName) {
-      // Masquer toutes les sections
       const cards = document.querySelectorAll('.card');
       cards.forEach(card => card.classList.remove('active'));
       
-      // Afficher la section demandée
       const targetSection = document.getElementById(sectionName);
       if (targetSection) {
         targetSection.classList.add('active');
       }
     }
 
-    // Rendre la fonction globale
     window.showSection = showSection;
   </script>
 </body>
