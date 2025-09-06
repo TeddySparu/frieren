@@ -510,34 +510,36 @@
 
     // Upload vers Imgur
     async function uploadToImgur(file) {
-      const formData = new FormData();
-      formData.append('image', file);
-      formData.append('type', 'file');
+  const formData = new FormData();
+  formData.append('image', file);
 
-      try {
-        const response = await fetch('https://api.imgur.com/3/image', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Client-ID ${IMGUR_CLIENT_ID}`,
-          },
-          body: formData
-        });
+  try {
+    const response = await fetch('https://api.imgur.com/3/image', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Client-ID ${IMGUR_CLIENT_ID}`,
+      },
+      body: formData
+    });
 
-        const data = await response.json();
-        
-        if (data.success) {
-          return {
-            url: data.data.link,
-            deleteHash: data.data.deletehash
-          };
-        } else {
-          throw new Error(data.data.error || 'Upload Imgur échoué');
-        }
-      } catch (error) {
-        console.error('Erreur upload Imgur:', error);
-        throw error;
-      }
+    const data = await response.json();
+    console.log("IMGUR RESPONSE:", data); // 🔍 voir ce qu'Imgur répond
+
+    if (data.success && data.data && data.data.link) {
+      // Force le bon lien direct vers l’image
+      const fixedLink = data.data.link.replace("https://imgur.com", "https://i.imgur.com");
+      return {
+        url: fixedLink,
+        deleteHash: data.data.deletehash
+      };
+    } else {
+      throw new Error(data.data?.error || 'Upload Imgur échoué');
     }
+  } catch (error) {
+    console.error('❌ Erreur upload Imgur:', error);
+    throw error;
+  }
+}
 
     async function sendMessage() {
       if (!currentUser) return;
@@ -778,5 +780,6 @@
   </script>
 </body>
 </html>
+
 
 
