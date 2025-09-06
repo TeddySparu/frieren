@@ -626,8 +626,25 @@
     }
 
     window.showSection = showSection;
+    async function deleteMessage(id){ 
+  try{ 
+    await deleteDoc(doc(db,'messages',id)); 
+  } catch(e){ console.error(e); }
+}
+
+async function editMessage(id,newText){
+  try{ 
+    await updateDoc(doc(db,'messages',id),{ text:newText, edited:true, editedAt:serverTimestamp() }); 
+  } catch(e){ console.error(e); }
+}
+
+function editMessagePrompt(id,currentText){
+  const newText = prompt("Modifier le message:",currentText);
+  if(newText!==null && newText.trim()!=='') editMessage(id,newText.trim());
+}
   </script>
 </body>
 </html>
+
 
 
