@@ -65,7 +65,7 @@
       width:60%;
       max-width:500px;
     }
-    input, textarea{
+    input, textarea, select{
       display:block;
       width:80%;
       margin:10px auto;
@@ -100,9 +100,24 @@
     .auth-form{
       width:300px;
     }
-    #chat-container{
-      max-width:800px;
+    .chat-layout{
+      display:flex;
+      max-width:1200px;
       margin:0 auto;
+      gap:20px;
+    }
+    #chat-container{
+      flex:1;
+      max-width:800px;
+    }
+    #online-users{
+      width:250px;
+      background:rgba(255,255,255,0.3);
+      border:5px groove lime;
+      padding:15px;
+      border-radius:15px;
+      height:500px;
+      overflow-y:auto;
     }
     #messages{
       height:400px;
@@ -119,15 +134,50 @@
       padding:10px;
       border:2px solid purple;
       border-radius:10px;
+      position:relative;
+    }
+    .message.muted{
+      background:rgba(128,128,128,0.5);
+    }
+    .message img{
+      max-width:300px;
+      max-height:300px;
+      border:3px solid lime;
+      border-radius:10px;
+      cursor:pointer;
+      margin:5px 0;
     }
     .message .username{
       font-weight:bold;
       color:#ff00ff;
     }
+    .message .username.admin{
+      color:#ff0000;
+    }
+    .message .username.admin::after{
+      content:" 👑";
+    }
     .message .timestamp{
       font-size:12px;
       color:#666;
       float:right;
+    }
+    .message .actions{
+      margin-top:5px;
+    }
+    .message .edit-btn, .message .delete-btn, .message .admin-btn{
+      font-size:12px;
+      padding:3px 8px;
+      margin:2px;
+    }
+    .message .edit-btn{
+      background:#fdcb6e;
+    }
+    .message .delete-btn{
+      background:#d63031;
+    }
+    .message .admin-btn{
+      background:#e17055;
     }
     #message-input{
       width:50%;
@@ -152,6 +202,52 @@
       border-radius:15px;
       max-width:400px;
     }
+    .admin-panel{
+      background:rgba(255,0,0,0.2);
+      border:5px solid red;
+      padding:15px;
+      margin:20px;
+      border-radius:15px;
+    }
+    .user-item{
+      background:rgba(255,255,255,0.4);
+      margin:5px 0;
+      padding:8px;
+      border-radius:8px;
+      font-size:14px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .user-item.online{
+      border-left:5px solid #00ff00;
+    }
+    .user-item.offline{
+      border-left:5px solid #666;
+      opacity:0.7;
+    }
+    .user-item.muted{
+      background:rgba(255,0,0,0.2);
+      border-left:5px solid #ff0000;
+    }
+    .user-status{
+      font-size:10px;
+      padding:2px 6px;
+      border-radius:10px;
+      margin-left:5px;
+    }
+    .status-online{
+      background:#00ff00;
+      color:#000;
+    }
+    .status-offline{
+      background:#666;
+      color:#fff;
+    }
+    .status-muted{
+      background:#ff0000;
+      color:#fff;
+    }
     .hidden{
       display:none !important;
     }
@@ -174,6 +270,37 @@
       margin:10px;
       border-radius:5px;
     }
+    .success{
+      background:green;
+      color:white;
+      padding:10px;
+      margin:10px;
+      border-radius:5px;
+    }
+    .modal{
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:rgba(0,0,0,0.8);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      z-index:9999;
+    }
+    .modal-content{
+      background:linear-gradient(45deg, #ff6600, #00ffcc, #ff00ff);
+      padding:30px;
+      border:5px solid lime;
+      border-radius:20px;
+      max-width:500px;
+      width:90%;
+    }
+    .modal-content input, .modal-content select{
+      width:100%;
+      margin:10px 0;
+    }
   </style>
 </head>
 <body>
@@ -188,6 +315,7 @@
         <a href="#" onclick="showSection('rituals')">Rituels</a>
         <a href="#" onclick="showSection('offerings')">Offrandes</a>
         <a href="#" onclick="showSection('chat')" id="chat-nav" class="hidden">Chat Sacré</a>
+        <a href="#" onclick="showSection('admin')" id="admin-nav" class="hidden">Admin 👑</a>
         <a href="#" onclick="showSection('auth')" id="auth-nav">Connexion</a>
         <a href="#" onclick="logout()" id="logout-nav" class="hidden">Déconnexion</a>
       </nav>
@@ -256,16 +384,37 @@
         <div id="auth-error" class="error hidden"></div>
       </div>
 
+      <!-- Admin Panel -->
+      <div id="admin" class="card">
+        <div class="admin-panel">
+          <h3>👑 Panel Administrateur Cosmique</h3>
+          <div style="display:flex; gap:20px; flex-wrap:wrap;">
+            <button onclick="showUserManagement()">👥 Gestion Utilisateurs</button>
+            <button onclick="clearAllMessages()">🗑️ Vider le Chat</button>
+            <button onclick="exportData()">📊 Export Données</button>
+          </div>
+          <div id="admin-status" class="success hidden"></div>
+        </div>
+      </div>
+
       <!-- Chat -->
       <div id="chat" class="card">
         <h3>💬 Chat Sacré de l'Ordre</h3>
-        <div id="chat-container">
-          <div id="messages"></div>
-          <div>
-            <input type="text" id="message-input" placeholder="Partage ta sagesse cosmique..." maxlength="500">
-            <input type="file" id="image-input" accept="image/*" style="display:none;">
-            <button class="image-btn" onclick="document.getElementById('image-input').click()">📷</button>
-            <button id="send-btn" onclick="sendMessage()">🚀</button>
+        <div class="chat-layout">
+          <div id="chat-container">
+            <div id="messages"></div>
+            <div>
+              <input type="text" id="message-input" placeholder="Partage ta sagesse cosmique..." maxlength="2000">
+              <input type="file" id="image-input" accept="image/*,.gif" style="display:none;" multiple>
+              <button class="image-btn" onclick="document.getElementById('image-input').click()">📷</button>
+              <button id="send-btn" onclick="sendMessage()">🚀</button>
+            </div>
+          </div>
+          
+          <!-- Liste des utilisateurs en ligne -->
+          <div id="online-users">
+            <h4 style="margin-top:0; color:#ff00ff;">👥 Disciples Connectés</h4>
+            <div id="users-list"></div>
           </div>
         </div>
       </div>
@@ -276,9 +425,38 @@
     </footer>
   </div>
 
+  <!-- Modals -->
+  <div id="user-management-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>👥 Gestion des Utilisateurs</h3>
+      <div id="users-management-list"></div>
+      <button onclick="closeModal()">Fermer</button>
+    </div>
+  </div>
+
+  <div id="mute-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>🔇 Muter un Utilisateur</h3>
+      <input type="text" id="mute-reason" placeholder="Raison du mute">
+      <select id="mute-duration">
+        <option value="300">5 minutes</option>
+        <option value="1800">30 minutes</option>
+        <option value="3600">1 heure</option>
+        <option value="86400">24 heures</option>
+        <option value="604800">7 jours</option>
+        <option value="2592000">30 jours</option>
+        <option value="permanent">Permanent</option>
+      </select>
+      <div style="margin-top:15px;">
+        <button onclick="confirmMute()">Confirmer Mute</button>
+        <button onclick="closeModal()">Annuler</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Firebase SDK -->
   <script type="module">
-    // Import Firebase depuis CDN
+    // Import Firebase
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { 
       getAuth, 
@@ -286,7 +464,8 @@
       signInWithEmailAndPassword,
       signOut,
       onAuthStateChanged,
-      updateProfile
+      updateProfile,
+      deleteUser
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import {
       getFirestore,
@@ -296,13 +475,21 @@
       orderBy,
       onSnapshot,
       serverTimestamp,
-      limit
+      limit,
+      doc,
+      updateDoc,
+      deleteDoc,
+      setDoc,
+      getDoc,
+      getDocs,
+      where
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
     import {
       getStorage,
       ref,
       uploadBytes,
-      getDownloadURL
+      getDownloadURL,
+      deleteObject
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
     // Configuration Firebase
@@ -316,8 +503,12 @@
     };
 
     // Variables globales
+    const ADMIN_UID = '5yv18zQAJBZZUIwKbFiURFQeFit2';
     let currentUser = null;
+    let isAdmin = false;
     let messagesListener = null;
+    let usersListener = null;
+    let currentMuteTarget = null;
     let app, auth, db, storage;
 
     // Éléments DOM
@@ -326,6 +517,7 @@
     const authNav = document.getElementById('auth-nav');
     const logoutNav = document.getElementById('logout-nav');
     const chatNav = document.getElementById('chat-nav');
+    const adminNav = document.getElementById('admin-nav');
     const userInfo = document.getElementById('user-info');
     const welcomeMsg = document.getElementById('welcome-msg');
     const authError = document.getElementById('auth-error');
@@ -342,7 +534,7 @@
         
         console.log('✅ Firebase initialisé');
         
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
           console.log('👤 Auth état:', user ? user.email : 'Déconnecté');
           
           loadingDiv.classList.add('hidden');
@@ -350,9 +542,11 @@
           
           if (user) {
             currentUser = user;
-            handleUserLoggedIn(user);
+            isAdmin = user.uid === ADMIN_UID;
+            await handleUserLoggedIn(user);
           } else {
             currentUser = null;
+            isAdmin = false;
             handleUserLoggedOut();
           }
         });
@@ -365,22 +559,34 @@
       }
     }
 
-    function handleUserLoggedIn(user) {
+    async function handleUserLoggedIn(user) {
       authNav.classList.add('hidden');
       logoutNav.classList.remove('hidden');
       chatNav.classList.remove('hidden');
       userInfo.classList.remove('hidden');
       
+      if (isAdmin) {
+        adminNav.classList.remove('hidden');
+      }
+      
       const displayName = user.displayName || user.email.split('@')[0];
-      welcomeMsg.textContent = `🌟 ${displayName} - Connecté !`;
+      welcomeMsg.textContent = `🌟 ${displayName}${isAdmin ? ' 👑' : ''} - Connecté !`;
+      
+      // Mettre à jour le statut utilisateur
+      await updateUserStatus(user.uid, displayName, 'online');
       
       setupChatListener();
+      setupUsersListener();
+      
+      // Vérifier si l'utilisateur est muted
+      await checkUserMuteStatus();
     }
 
     function handleUserLoggedOut() {
       authNav.classList.remove('hidden');
       logoutNav.classList.add('hidden');
       chatNav.classList.add('hidden');
+      adminNav.classList.add('hidden');
       userInfo.classList.add('hidden');
       
       if (messagesListener) {
@@ -388,7 +594,44 @@
         messagesListener = null;
       }
       
+      if (usersListener) {
+        usersListener();
+        usersListener = null;
+      }
+      
       showSection('home');
+    }
+
+    async function updateUserStatus(userId, username, status) {
+      try {
+        await setDoc(doc(db, 'users', userId), {
+          username,
+          status,
+          lastSeen: serverTimestamp(),
+          isAdmin: userId === ADMIN_UID
+        }, { merge: true });
+      } catch (error) {
+        console.error('Erreur update status:', error);
+      }
+    }
+
+    async function checkUserMuteStatus() {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          if (data.mutedUntil) {
+            const muteEnd = new Date(data.mutedUntil.seconds * 1000);
+            if (muteEnd > new Date()) {
+              showError(`Vous êtes mute jusqu'à ${muteEnd.toLocaleString()}`);
+              document.getElementById('message-input').disabled = true;
+              document.getElementById('send-btn').disabled = true;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Erreur check mute:', error);
+      }
     }
 
     function setupAuthForms() {
@@ -430,7 +673,7 @@
       const q = query(
         collection(db, 'messages'),
         orderBy('timestamp', 'desc'),
-        limit(50)
+        limit(100)
       );
 
       messagesListener = onSnapshot(q, (snapshot) => {
@@ -455,11 +698,52 @@
       });
 
       document.getElementById('image-input').addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          sendImageMessage(file);
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+          sendImageMessages(files);
         }
       });
+    }
+
+    function setupUsersListener() {
+      const usersListDiv = document.getElementById('users-list');
+      
+      usersListener = onSnapshot(collection(db, 'users'), (snapshot) => {
+        usersListDiv.innerHTML = '';
+        const users = [];
+        
+        snapshot.forEach((doc) => {
+          users.push({ id: doc.id, ...doc.data() });
+        });
+        
+        // Trier par statut (online en premier) puis par nom
+        users.sort((a, b) => {
+          if (a.status !== b.status) {
+            return a.status === 'online' ? -1 : 1;
+          }
+          return (a.username || '').localeCompare(b.username || '');
+        });
+        
+        users.forEach((user) => {
+          addUserToList(user);
+        });
+      });
+    }
+
+    function addUserToList(user) {
+      const usersListDiv = document.getElementById('users-list');
+      const userDiv = document.createElement('div');
+      userDiv.className = `user-item ${user.status || 'offline'} ${user.mutedUntil ? 'muted' : ''}`;
+      
+      const statusText = user.status === 'online' ? 'En ligne' : 'Hors ligne';
+      const muteText = user.mutedUntil ? ' (Mute)' : '';
+      
+      userDiv.innerHTML = `
+        <span>${user.username || 'Anonyme'}${user.isAdmin ? ' 👑' : ''}${muteText}</span>
+        <span class="user-status status-${user.status || 'offline'}">${statusText}</span>
+      `;
+      
+      usersListDiv.appendChild(userDiv);
     }
 
     async function sendMessage() {
@@ -470,12 +754,31 @@
       
       if (!message) return;
       
+      // Vérifier si l'utilisateur est mute
+      try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          if (data.mutedUntil) {
+            const muteEnd = new Date(data.mutedUntil.seconds * 1000);
+            if (muteEnd > new Date()) {
+              showError(`Vous êtes mute jusqu'à ${muteEnd.toLocaleString()}`);
+              return;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Erreur check mute:', error);
+      }
+      
       try {
         await addDoc(collection(db, 'messages'), {
           text: message,
           username: currentUser.displayName || currentUser.email.split('@')[0],
           userId: currentUser.uid,
-          timestamp: serverTimestamp()
+          timestamp: serverTimestamp(),
+          type: 'text',
+          isAdmin: isAdmin
         });
         
         input.value = '';
@@ -484,34 +787,39 @@
       }
     }
 
-    async function sendImageMessage(file) {
+    async function sendImageMessages(files) {
       if (!currentUser) return;
       
-      if (file.size > 5 * 1024 * 1024) {
-        showError('Image trop lourde (max 5MB)');
-        return;
-      }
-
       try {
-        console.log('📤 Upload image...');
-        
-        const fileName = `images/${Date.now()}_${file.name}`;
-        const imageRef = ref(storage, fileName);
-        
-        const snapshot = await uploadBytes(imageRef, file);
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        
-        await addDoc(collection(db, 'messages'), {
-          imageUrl: downloadURL,
-          fileName: file.name,
-          fileType: file.type,
-          username: currentUser.displayName || currentUser.email.split('@')[0],
-          userId: currentUser.uid,
-          timestamp: serverTimestamp()
-        });
+        for (const file of files) {
+          if (file.size > 50 * 1024 * 1024) {
+            showError(`Fichier ${file.name} trop lourd (max 50MB)`);
+            continue;
+          }
+          
+          console.log('📤 Upload image...');
+          
+          const fileName = `images/${Date.now()}_${file.name}`;
+          const imageRef = ref(storage, fileName);
+          
+          const snapshot = await uploadBytes(imageRef, file);
+          const downloadURL = await getDownloadURL(snapshot.ref);
+          
+          await addDoc(collection(db, 'messages'), {
+            imageUrl: downloadURL,
+            fileName: file.name,
+            fileType: file.type,
+            storagePath: fileName,
+            username: currentUser.displayName || currentUser.email.split('@')[0],
+            userId: currentUser.uid,
+            timestamp: serverTimestamp(),
+            type: 'image',
+            isAdmin: isAdmin
+          });
+        }
         
         document.getElementById('image-input').value = '';
-        console.log('✅ Image envoyée');
+        console.log('✅ Images envoyées');
         
       } catch (error) {
         console.error('❌ Erreur upload:', error);
@@ -523,6 +831,7 @@
       const messagesDiv = document.getElementById('messages');
       const messageDiv = document.createElement('div');
       messageDiv.className = 'message';
+      messageDiv.setAttribute('data-message-id', message.id);
       
       const timestamp = message.timestamp ? 
         new Date(message.timestamp.seconds * 1000).toLocaleTimeString('fr-FR', {
@@ -530,102 +839,16 @@
           minute: '2-digit'
         }) : 'Maintenant';
       
-      let content = '';
+      let content = `
+        <div class="timestamp">${timestamp}</div>
+        <div class="username ${message.isAdmin ? 'admin' : ''}">${message.username}:</div>
+      `;
       
-      if (message.imageUrl) {
+      if (message.type === 'image' && message.imageUrl) {
         const isGif = message.fileType === 'image/gif';
-        content = `
-          <div class="timestamp">${timestamp}</div>
-          <div class="username">${message.username}:</div>
+        content += `
           <div>
             <img src="${message.imageUrl}" 
                  alt="${message.fileName || 'Image'}" 
-                 style="max-width:300px; max-height:300px; border:3px solid lime; border-radius:10px; cursor:pointer;"
                  onclick="openImageModal('${message.imageUrl}', '${message.fileName || 'Image'}')">
-            <br><small style="color:#666;">📷 ${message.fileName || 'Image'} ${isGif ? '(GIF)' : ''}</small>
-          </div>
-        `;
-      } else {
-        content = `
-          <div class="timestamp">${timestamp}</div>
-          <div class="username">${message.username}:</div>
-          <div>${escapeHtml(message.text || '')}</div>
-        `;
-      }
-      
-      messageDiv.innerHTML = content;
-      messagesDiv.appendChild(messageDiv);
-    }
-
-    async function logout() {
-      try {
-        await signOut(auth);
-      } catch (error) {
-        showError('Erreur déconnexion: ' + error.message);
-      }
-    }
-
-    function showError(message) {
-      authError.textContent = message;
-      authError.classList.remove('hidden');
-      setTimeout(hideError, 5000);
-    }
-
-    function hideError() {
-      authError.classList.add('hidden');
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    function openImageModal(imageUrl, fileName) {
-      const modal = document.createElement('div');
-      modal.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.8); display: flex; justify-content: center;
-        align-items: center; z-index: 9999; cursor: pointer;
-      `;
-      
-      const img = document.createElement('img');
-      img.src = imageUrl;
-      img.alt = fileName;
-      img.style.cssText = `
-        max-width: 90%; max-height: 90%; border: 5px solid lime;
-        border-radius: 15px; cursor: default;
-      `;
-      
-      modal.appendChild(img);
-      document.body.appendChild(modal);
-      
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          document.body.removeChild(modal);
-        }
-      });
-    }
-
-    window.sendMessage = sendMessage;
-    window.logout = logout;
-    window.openImageModal = openImageModal;
-
-    initFirebase();
-  </script>
-
-  <script>
-    function showSection(sectionName) {
-      const cards = document.querySelectorAll('.card');
-      cards.forEach(card => card.classList.remove('active'));
-      
-      const targetSection = document.getElementById(sectionName);
-      if (targetSection) {
-        targetSection.classList.add('active');
-      }
-    }
-
-    window.showSection = showSection;
-  </script>
-</body>
-</html>
+            <br><small style="color:#666
