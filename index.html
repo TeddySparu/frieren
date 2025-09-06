@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>L'Ordre de Frieren & Jägermaister</title>
+  <style>
+    * { box-sizing: border-box; }
+    
+    body{
+      background:linear-gradient(90deg, magenta, lime, cyan, yellow);
+      font-family:"Comic Sans MS", "Papyrus", cursive;
+      color:#0000ff;
+      margin:0;
+      padding:0;
+      text-align:center;
+    }
+    header{
+      background:repeating-linear-gradient(45deg, red, red 10px, blue 10px, blue 20px);
+      color:#00ff00;
+      padding:20px;
+      border:5px dotted orange;
+    }
+    h1{
+      font-size:48px;
+      text-shadow:3px 3px yellow;
+      transform:skewX(-10deg);
+    }
+    nav a{
+      margin:0 10px;
+      color:#ff00ff;
+      font-size:22px;
+      background:#00ffff;
+      padding:5px 10px;
+      border:3px dashed purple;
+      cursor:pointer;
+      text-decoration:none;
+    }
+    nav a:hover{
+      background:#ffff00;
+      transform:scale(1.1);
+    }
+    .card{
+      margin:20px;
+      padding:20px;
+      border:7px ridge pink;
+      background:linear-gradient(45deg, #ff6600, #00ffcc, #ff00ff);
+      font-size:20px;
+      display:none;
+    }
+    .card.active{
+      display:block;
+    }
+    img.frieren{
+      border:10px groove lime;
+      max-width:300px;
+      display:block;
+      margin:20px auto;
+    }
+    form{
+      background:linear-gradient(90deg, pink, violet, turquoise);
+      padding:20px;
+      border:6px dotted red;
+      margin:20px auto;
+      width:60%;
+      max-width:500px;
+    }
+    input, textarea{
+      display:block;
+      width:80%;
+      margin:10px auto;
+      padding:10px;
+      font-family:"Comic Sans MS", cursive;
+      border:5px inset yellow;
+      background:#ffeb3b;
+    }
+    button{
+      background:lime;
+      font-size:24px;
+      border:4px outset cyan;
+      padding:10px 20px;
+      cursor:pointer;
+      font-family:"Impact", fantasy;
+      margin:5px;
+    }
+    button:hover{
+      background:#00ff00;
+      transform:scale(1.05);
+    }
+    button:disabled{
+      background:#ccc;
+      cursor:not-allowed;
+    }
+    .auth-container{
+      display:flex;
+      justify-content:center;
+      gap:20px;
+      flex-wrap:wrap;
+    }
+    .auth-form{
+      width:300px;
+    }
+    #chat-container{
+      max-width:800px;
+      margin:0 auto;
+    }
+    #messages{
+      height:400px;
+      overflow-y:auto;
+      background:rgba(255,255,255,0.2);
+      border:5px groove lime;
+      padding:10px;
+      margin:20px 0;
+      text-align:left;
+    }
+    .message{
+      background:rgba(0,255,255,0.3);
+      margin:5px 0;
+      padding:10px;
+      border:2px solid purple;
+      border-radius:10px;
+    }
+    .message .username{
+      font-weight:bold;
+      color:#ff00ff;
+    }
+    .message .timestamp{
+      font-size:12px;
+      color:#666;
+      float:right;
+    }
+    #message-input{
+      width:70%;
+      display:inline-block;
+    }
+    #send-btn{
+      width:25%;
+      display:inline-block;
+    }
+    .user-info{
+      background:rgba(255,255,255,0.3);
+      padding:15px;
+      margin:20px auto;
+      border:3px solid orange;
+      border-radius:15px;
+      max-width:400px;
+    }
+    .hidden{
+      display:none !important;
+    }
+    footer{
+      background:#ff00ff;
+      color:#00ffff;
+      font-size:18px;
+      padding:20px;
+      border-top:8px double black;
+    }
+    .loading{
+      color:#fff;
+      font-size:18px;
+      margin:20px;
+    }
+    .error{
+      background:red;
+      color:white;
+      padding:10px;
+      margin:10px;
+      border-radius:5px;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading" class="loading">🔥 Initialisation de la connexion cosmique... 🔥</div>
+  
+  <div id="app" class="hidden">
+    <header>
+      <h1>🔥 L'Ordre Sacré de Frieren & Jägermaister 🔥</h1>
+      <nav>
+        <a href="#" onclick="showSection('home')">Accueil</a>
+        <a href="#" onclick="showSection('creed')">Préceptes</a>
+        <a href="#" onclick="showSection('rituals')">Rituels</a>
+        <a href="#" onclick="showSection('offerings')">Offrandes</a>
+        <a href="#" onclick="showSection('chat')" id="chat-nav" class="hidden">Chat Sacré</a>
+        <a href="#" onclick="showSection('auth')" id="auth-nav">Connexion</a>
+        <a href="#" onclick="logout()" id="logout-nav" class="hidden">Déconnexion</a>
+      </nav>
+      
+      <div id="user-info" class="user-info hidden">
+        <span id="welcome-msg">Bienvenue, disciple cosmique !</span>
+      </div>
+    </header>
+
+    <main>
+      <!-- Accueil -->
+      <div id="home" class="card active">
+        <h2>Bienvenue Voyageur Cosmique ✨</h2>
+        <p>Ici on mélange la sagesse éternelle de Frieren et la puissance mystique de la Jägermaister. Rien n'a de sens, et c'est mieux comme ça.</p>
+        <img class="frieren" src="https://static.wikia.nocookie.net/frieren/images/0/0a/Frieren_Anime.png" alt="Frieren divine">
+      </div>
+
+      <!-- Préceptes -->
+      <div id="creed" class="card">
+        <h3>📜 Préceptes sacrés (bizarres)</h3>
+        <ul>
+          <li>Ne bois que quand tu oublies pourquoi tu bois.</li>
+          <li>Frieren est la seule réponse, même quand ce n'est pas une question.</li>
+          <li>Le vert fluo est la couleur de la vérité.</li>
+        </ul>
+      </div>
+
+      <!-- Rituels -->
+      <div id="rituals" class="card">
+        <h3>🔮 Rituels sacrés</h3>
+        <p>On danse autour d'un frigo vide, on récite des citations inventées et on crie « POUR FRIEREN » en levant un verre de Jägermaister tiède.</p>
+      </div>
+
+      <!-- Offrandes -->
+      <div id="offerings" class="card">
+        <h3>🍹 Offrandes sacrées</h3>
+        <p>Soupe de chips mixés + Jägermaister + glaçons fluorescents.</p>
+        <p>Smoothie banane-fraises… remplacées par plus de Jägermaister.</p>
+      </div>
+
+      <!-- Authentification -->
+      <div id="auth" class="card">
+        <h3>🔐 Rejoindre la secte cosmique</h3>
+        <div class="auth-container">
+          <!-- Inscription -->
+          <div class="auth-form">
+            <h4>📝 Créer un compte</h4>
+            <form id="register-form">
+              <input type="text" id="register-username" placeholder="Nom cosmique" required>
+              <input type="email" id="register-email" placeholder="Email du futur" required>
+              <input type="password" id="register-password" placeholder="Mot de passe mystique" required>
+              <button type="submit">🌟 Rejoindre l'Ordre</button>
+            </form>
+          </div>
+
+          <!-- Connexion -->
+          <div class="auth-form">
+            <h4>🚪 Se connecter</h4>
+            <form id="login-form">
+              <input type="email" id="login-email" placeholder="Email" required>
+              <input type="password" id="login-password" placeholder="Mot de passe" required>
+              <button type="submit">⚡ Connexion cosmique</button>
+            </form>
+          </div>
+        </div>
+        <div id="auth-error" class="error hidden"></div>
+      </div>
+
+      <!-- Chat -->
+      <div id="chat" class="card">
+        <h3>💬 Chat Sacré de l'Ordre</h3>
+        <div id="chat-container">
+          <div id="messages"></div>
+          <div>
+            <input type="text" id="message-input" placeholder="Partage ta sagesse cosmique..." maxlength="500">
+            <button id="send-btn" onclick="sendMessage()">🚀 Envoyer</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>© 1987-2025 — L'Ordre de Frieren & Jägermaister. Site moche garanti.</p>
+    </footer>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    // Configuration Firebase - À REMPLACER par tes propres clés
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { 
+      getAuth, 
+      createUserWithEmailAndPassword, 
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged,
+      updateProfile
+    } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      query,
+      orderBy,
+      onSnapshot,
+      serverTimestamp,
+      limit
+    } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+    // ⚠️ REMPLACE CES VALEURS PAR TES VRAIES CLÉS FIREBASE
+    const firebaseConfig = {
+      apiKey: "your-api-key-here",
+      authDomain: "your-project.firebaseapp.com", 
+      projectId: "your-project-id",
+      storageBucket: "your-project.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "your-app-id"
+    };
+
+    // Initialisation Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Variables globales
+    let currentUser = null;
+    let messagesListener = null;
+
+    // Éléments DOM
+    const loadingDiv = document.getElementById('loading');
+    const appDiv = document.getElementById('app');
+    const authNav = document.getElementById('auth-nav');
+    const logoutNav = document.getElementById('logout-nav');
+    const chatNav = document.getElementById('chat-nav');
+    const userInfo = document.getElementById('user-info');
+    const welcomeMsg = document.getElementById('welcome-msg');
+    const authError = document.getElementById('auth-error');
+
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', function() {
+      // Écouteur d'état d'authentification
+      onAuthStateChanged(auth, (user) => {
+        loadingDiv.classList.add('hidden');
+        appDiv.classList.remove('hidden');
+        
+        if (user) {
+          currentUser = user;
+          handleUserLoggedIn(user);
+        } else {
+          currentUser = null;
+          handleUserLoggedOut();
+        }
+      });
+
+      // Formulaires d'authentification
+      setupAuthForms();
+    });
+
+    function handleUserLoggedIn(user) {
+      authNav.classList.add('hidden');
+      logoutNav.classList.remove('hidden');
+      chatNav.classList.remove('hidden');
+      userInfo.classList.remove('hidden');
+      
+      const displayName = user.displayName || user.email.split('@')[0];
+      welcomeMsg.textContent = `🌟 ${displayName} - Disciple cosmique connecté !`;
+      
+      setupChatListener();
+    }
+
+    function handleUserLoggedOut() {
+      authNav.classList.remove('hidden');
+      logoutNav.classList.add('hidden');
+      chatNav.classList.add('hidden');
+      userInfo.classList.add('hidden');
+      
+      if (messagesListener) {
+        messagesListener();
+        messagesListener = null;
+      }
+      
+      showSection('home');
+    }
+
+    function setupAuthForms() {
+      // Inscription
+      document.getElementById('register-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideError();
+        
+        const username = document.getElementById('register-username').value;
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+        
+        try {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          await updateProfile(userCredential.user, { displayName: username });
+          showSection('home');
+        } catch (error) {
+          showError('Erreur lors de l\'inscription: ' + error.message);
+        }
+      });
+
+      // Connexion
+      document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideError();
+        
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+          showSection('home');
+        } catch (error) {
+          showError('Erreur de connexion: ' + error.message);
+        }
+      });
+    }
+
+    function setupChatListener() {
+      const messagesDiv = document.getElementById('messages');
+      const q = query(
+        collection(db, 'messages'),
+        orderBy('timestamp', 'desc'),
+        limit(50)
+      );
+
+      messagesListener = onSnapshot(q, (snapshot) => {
+        messagesDiv.innerHTML = '';
+        const messages = [];
+        
+        snapshot.forEach((doc) => {
+          messages.push({ id: doc.id, ...doc.data() });
+        });
+        
+        // Afficher dans l'ordre chronologique
+        messages.reverse().forEach((message) => {
+          addMessageToDOM(message);
+        });
+        
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      });
+
+      // Envoi de message avec Enter
+      document.getElementById('message-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
+      });
+    }
+
+    async function sendMessage() {
+      if (!currentUser) return;
+      
+      const input = document.getElementById('message-input');
+      const message = input.value.trim();
+      
+      if (!message) return;
+      
+      try {
+        await addDoc(collection(db, 'messages'), {
+          text: message,
+          username: currentUser.displayName || currentUser.email.split('@')[0],
+          userId: currentUser.uid,
+          timestamp: serverTimestamp()
+        });
+        
+        input.value = '';
+      } catch (error) {
+        showError('Erreur lors de l\'envoi: ' + error.message);
+      }
+    }
+
+    function addMessageToDOM(message) {
+      const messagesDiv = document.getElementById('messages');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message';
+      
+      const timestamp = message.timestamp ? 
+        new Date(message.timestamp.seconds * 1000).toLocaleTimeString('fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }) : 'Maintenant';
+      
+      messageDiv.innerHTML = `
+        <div class="timestamp">${timestamp}</div>
+        <div class="username">${message.username}:</div>
+        <div>${escapeHtml(message.text)}</div>
+      `;
+      
+      messagesDiv.appendChild(messageDiv);
+    }
+
+    async function logout() {
+      try {
+        await signOut(auth);
+      } catch (error) {
+        showError('Erreur de déconnexion: ' + error.message);
+      }
+    }
+
+    function showError(message) {
+      authError.textContent = message;
+      authError.classList.remove('hidden');
+      setTimeout(hideError, 5000);
+    }
+
+    function hideError() {
+      authError.classList.add('hidden');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Rendre les fonctions globales
+    window.sendMessage = sendMessage;
+    window.logout = logout;
+  </script>
+
+  <script>
+    // Navigation
+    function showSection(sectionName) {
+      // Masquer toutes les sections
+      const cards = document.querySelectorAll('.card');
+      cards.forEach(card => card.classList.remove('active'));
+      
+      // Afficher la section demandée
+      const targetSection = document.getElementById(sectionName);
+      if (targetSection) {
+        targetSection.classList.add('active');
+      }
+    }
+
+    // Rendre la fonction globale
+    window.showSection = showSection;
+  </script>
+</body>
+</html>
