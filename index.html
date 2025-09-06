@@ -37,6 +37,8 @@
     .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;justify-content:center;align-items:center;z-index:9999}
     .modal-content{background:linear-gradient(45deg,#f60,#0fc,#f0f);padding:30px;border:5px solid lime;border-radius:20px;max-width:500px;width:90%}
     .admin-panel{background:rgba(255,0,0,0.2);border:5px solid red;padding:15px;margin:20px;border-radius:15px}
+    /* Fix pour l'espacement du message de bienvenue */
+    #user-info{margin-top:10px;padding-top:10px;clear:both;}
   </style>
 </head>
 <body>
@@ -207,6 +209,9 @@
         db = getFirestore(app);
         storage = getStorage(app);
         
+        console.log('Firebase initialized successfully');
+        console.log('Storage bucket:', storage.app.options.storageBucket);
+        
         onAuthStateChanged(auth, async (user) => {
           $('loading').classList.add('hidden');
           $('app').classList.remove('hidden');
@@ -313,7 +318,10 @@
       });
 
       $('image-input').addEventListener('change', (e) => {
-        if (e.target.files.length > 0) sendImages(Array.from(e.target.files));
+        if (e.target.files.length > 0) {
+          console.log('Files selected:', e.target.files.length);
+          sendImages(Array.from(e.target.files));
+        }
       });
     }
 
@@ -354,7 +362,10 @@
       `;
       
       if (msg.type === 'image' && msg.imageUrl) {
-        content += `<img src="${msg.imageUrl}" alt="${msg.fileName || 'Image'}" onclick="window.open('${msg.imageUrl}','_blank')">`;
+        content += `<img src="${msg.imageUrl}" alt="${msg.fileName || 'Image'}" onclick="window.open('${msg.imageUrl}','_blank')" onerror="this.style.display='none'; console.error('Image failed to load:', '${msg.imageUrl}')">`;
+        if (msg.fileName) {
+          content += `<div style="font-size:12px;color:#666;margin-top:5px;">📎 ${msg.fileName}</div>`;
+        }
       } else if (msg.text) {
         content += `<div>${msg.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
       }
@@ -397,35 +408,67 @@
         });
         input.value = '';
       } catch (error) {
+        console.error('Error sending message:', error);
         showError('Erreur envoi: ' + error.message);
       }
     }
 
     async function sendImages(files) {
-      if (!currentUser) return;
+      if (!currentUser) {
+        showError('Vous devez être connecté pour envoyer des images');
+        return;
+      }
+
+      console.log('Attempting to send', files.length, 'images');
 
       // Check mute
-      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-      if (userDoc.exists() && userDoc.data().mutedUntil) {
-        const muteEnd = userDoc.data().mutedUntil.toDate();
-        if (muteEnd > new Date()) {
-          showError(`Vous êtes mute jusqu'à ${muteEnd.toLocaleString()}`);
-          return;
+      try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists() && userDoc.data().mutedUntil) {
+          const muteEnd = userDoc.data().mutedUntil.toDate();
+          if (muteEnd > new Date()) {
+            showError(`Vous êtes mute jusqu'à ${muteEnd.toLocaleString()}`);
+            return;
+          }
         }
+      } catch (error) {
+        console.error('Error checking mute status:', error);
       }
       
       for (const file of files) {
+        console.log('Processing file:', file.name, 'Size:', file.size, 'Type:', file.type);
+        
         if (file.size > 5 * 1024 * 1024) {
           showError(`${file.name} trop lourd (max 5MB)`);
           continue;
         }
         
+        if (!file.type.startsWith('image/')) {
+          showError(`${file.name} n'est pas une image valide`);
+          continue;
+        }
+        
         try {
-          const path = `images/${currentUser.uid}/${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${file.name}`;
-          const snapshot = await uploadBytes(ref(storage, path), file);
-          const url = await getDownloadURL(snapshot.ref);
+          // Create unique filename
+          const timestamp = Date.now();
+          const randomId = Math.random().toString(36).substr(2, 9);
+          const fileExtension = file.name.split('.').pop();
+          const fileName = `${timestamp}_${randomId}.${fileExtension}`;
+          const path = `images/${currentUser.uid}/${fileName}`;
           
-          await addDoc(collection(db, 'messages'), {
+          console.log('Uploading to path:', path);
+          
+          // Upload to Firebase Storage
+          const storageRef = ref(storage, path);
+          const snapshot = await uploadBytes(storageRef, file);
+          console.log('Upload successful, snapshot:', snapshot);
+          
+          // Get download URL
+          const url = await getDownloadURL(snapshot.ref);
+          console.log('Download URL obtained:', url);
+          
+          // Save message to Firestore
+          const messageData = {
             imageUrl: url,
             fileName: file.name,
             fileType: file.type,
@@ -435,13 +478,23 @@
             timestamp: serverTimestamp(),
             type: 'image',
             isAdmin
-          });
+          };
+          
+          console.log('Saving message to Firestore:', messageData);
+          
+          await addDoc(collection(db, 'messages'), messageData);
+          console.log('Message saved successfully');
+          
         } catch (error) {
-          showError('Erreur upload: ' + error.message);
+          console.error('Detailed error uploading image:', error);
+          console.error('Error code:', error.code);
+          console.error('Error message:', error.message);
+          showError(`Erreur upload ${file.name}: ${error.message}`);
         }
       }
+      
       $('image-input').value = '';
-      showSuccess('Images envoyées !');
+      showSuccess('Images traitées !');
     }
 
     async function deleteMessage(id) {
@@ -450,6 +503,7 @@
         await deleteDoc(doc(db, 'messages', id));
         showSuccess('Message supprimé');
       } catch (error) {
+        console.error('Error deleting message:', error);
         showError('Erreur suppression: ' + error.message);
       }
     }
@@ -463,6 +517,7 @@
           $('edit-modal').classList.remove('hidden');
         }
       } catch (error) {
+        console.error('Error editing message:', error);
         showError('Erreur: ' + error.message);
       }
     }
@@ -480,6 +535,7 @@
         closeModal();
         showSuccess('Message modifié');
       } catch (error) {
+        console.error('Error updating message:', error);
         showError('Erreur: ' + error.message);
       }
     }
@@ -491,6 +547,7 @@
         await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
         showSuccess('Chat vidé');
       } catch (error) {
+        console.error('Error clearing messages:', error);
         showError('Erreur: ' + error.message);
       }
     }
@@ -552,6 +609,7 @@
         showSuccess('Utilisateur mute');
         showUserManagement();
       } catch (error) {
+        console.error('Error muting user:', error);
         showError('Erreur mute: ' + error.message);
       }
     }
@@ -568,6 +626,7 @@
         showSuccess('Utilisateur démute');
         showUserManagement();
       } catch (error) {
+        console.error('Error unmuting user:', error);
         showError('Erreur: ' + error.message);
       }
     }
@@ -592,6 +651,7 @@
     }
 
     function showError(msg) {
+      console.error('Error:', msg);
       const err = $('auth-error');
       err.textContent = msg;
       err.classList.remove('hidden');
@@ -599,6 +659,7 @@
     }
 
     function showSuccess(msg) {
+      console.log('Success:', msg);
       const div = document.createElement('div');
       div.className = 'success';
       div.textContent = msg;
@@ -624,14 +685,22 @@
     // Event listeners
     window.addEventListener('beforeunload', async () => {
       if (currentUser) {
-        await setDoc(doc(db, 'users', currentUser.uid), { status: 'offline' }, { merge: true });
+        try {
+          await setDoc(doc(db, 'users', currentUser.uid), { status: 'offline' }, { merge: true });
+        } catch (error) {
+          console.error('Error setting offline status:', error);
+        }
       }
     });
 
     document.addEventListener('visibilitychange', async () => {
       if (currentUser) {
-        const status = document.hidden ? 'offline' : 'online';
-        await setDoc(doc(db, 'users', currentUser.uid), { status }, { merge: true });
+        try {
+          const status = document.hidden ? 'offline' : 'online';
+          await setDoc(doc(db, 'users', currentUser.uid), { status }, { merge: true });
+        } catch (error) {
+          console.error('Error updating visibility status:', error);
+        }
       }
     });
 
