@@ -1,631 +1,323 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>L'Ordre de Frieren & Jägermaister</title>
-  <style>
-    * { box-sizing: border-box; }
-    
-    body{
-      background:linear-gradient(90deg, magenta, lime, cyan, yellow);
-      font-family:"Comic Sans MS", "Papyrus", cursive;
-      color:#0000ff;
-      margin:0;
-      padding:0;
-      text-align:center;
-    }
-    header{
-      background:repeating-linear-gradient(45deg, red, red 10px, blue 10px, blue 20px);
-      color:#00ff00;
-      padding:20px;
-      border:5px dotted orange;
-    }
-    h1{
-      font-size:48px;
-      text-shadow:3px 3px yellow;
-      transform:skewX(-10deg);
-    }
-    nav a{
-      margin:0 10px;
-      color:#ff00ff;
-      font-size:22px;
-      background:#00ffff;
-      padding:5px 10px;
-      border:3px dashed purple;
-      cursor:pointer;
-      text-decoration:none;
-    }
-    nav a:hover{
-      background:#ffff00;
-      transform:scale(1.1);
-    }
-    .card{
-      margin:20px;
-      padding:20px;
-      border:7px ridge pink;
-      background:linear-gradient(45deg, #ff6600, #00ffcc, #ff00ff);
-      font-size:20px;
-      display:none;
-    }
-    .card.active{
-      display:block;
-    }
-    img.frieren{
-      border:10px groove lime;
-      max-width:300px;
-      display:block;
-      margin:20px auto;
-    }
-    form{
-      background:linear-gradient(90deg, pink, violet, turquoise);
-      padding:20px;
-      border:6px dotted red;
-      margin:20px auto;
-      width:60%;
-      max-width:500px;
-    }
-    input, textarea{
-      display:block;
-      width:80%;
-      margin:10px auto;
-      padding:10px;
-      font-family:"Comic Sans MS", cursive;
-      border:5px inset yellow;
-      background:#ffeb3b;
-    }
-    button{
-      background:lime;
-      font-size:24px;
-      border:4px outset cyan;
-      padding:10px 20px;
-      cursor:pointer;
-      font-family:"Impact", fantasy;
-      margin:5px;
-    }
-    button:hover{
-      background:#00ff00;
-      transform:scale(1.05);
-    }
-    button:disabled{
-      background:#ccc;
-      cursor:not-allowed;
-    }
-    .auth-container{
-      display:flex;
-      justify-content:center;
-      gap:20px;
-      flex-wrap:wrap;
-    }
-    .auth-form{
-      width:300px;
-    }
-    #chat-container{
-      max-width:800px;
-      margin:0 auto;
-    }
-    #messages{
-      height:400px;
-      overflow-y:auto;
-      background:rgba(255,255,255,0.2);
-      border:5px groove lime;
-      padding:10px;
-      margin:20px 0;
-      text-align:left;
-    }
-    .message{
-      background:rgba(0,255,255,0.3);
-      margin:5px 0;
-      padding:10px;
-      border:2px solid purple;
-      border-radius:10px;
-    }
-    .message .username{
-      font-weight:bold;
-      color:#ff00ff;
-    }
-    .message .timestamp{
-      font-size:12px;
-      color:#666;
-      float:right;
-    }
-    #message-input{
-      width:50%;
-      display:inline-block;
-    }
-    #send-btn{
-      width:20%;
-      display:inline-block;
-      font-size:18px;
-    }
-    .image-btn{
-      width:20%;
-      display:inline-block;
-      font-size:18px;
-      background:#ff69b4;
-    }
-    .user-info{
-      background:rgba(255,255,255,0.3);
-      padding:15px;
-      margin:20px auto;
-      border:3px solid orange;
-      border-radius:15px;
-      max-width:400px;
-    }
-    .hidden{
-      display:none !important;
-    }
-    footer{
-      background:#ff00ff;
-      color:#00ffff;
-      font-size:18px;
-      padding:20px;
-      border-top:8px double black;
-    }
-    .loading{
-      color:#fff;
-      font-size:18px;
-      margin:20px;
-    }
-    .error{
-      background:red;
-      color:white;
-      padding:10px;
-      margin:10px;
-      border-radius:5px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Frieren - Discord Edition</title>
+    <style>
+        * { box-sizing: border-box; }
+        
+        body {
+            background: linear-gradient(90deg, magenta, lime, cyan, yellow);
+            font-family: "Comic Sans MS", cursive;
+            margin: 0;
+            padding: 20px;
+            color: #000;
+        }
+        
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border: 5px solid #ff00ff;
+            border-radius: 20px;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #ff00ff;
+            text-shadow: 2px 2px #00ff00;
+            font-size: 2.5em;
+        }
+        
+        #messages {
+            height: 400px;
+            overflow-y: auto;
+            border: 3px solid #00ffff;
+            background: linear-gradient(45deg, #ffeaa7, #fab1a0);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        
+        .message {
+            background: rgba(255, 255, 255, 0.8);
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 15px;
+            border: 2px solid #e17055;
+            position: relative;
+        }
+        
+        .message img {
+            max-width: 300px;
+            max-height: 300px;
+            border: 3px solid #00b894;
+            border-radius: 10px;
+            margin: 5px 0;
+        }
+        
+        .username {
+            font-weight: bold;
+            color: #d63031;
+            font-size: 1.1em;
+        }
+        
+        .timestamp {
+            font-size: 0.8em;
+            color: #636e72;
+            float: right;
+        }
+        
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            padding: 15px;
+            font-size: 16px;
+            border: 3px solid #6c5ce7;
+            border-radius: 10px;
+            background: #ffeaa7;
+            font-family: "Comic Sans MS", cursive;
+        }
+        
+        button {
+            padding: 15px 20px;
+            font-size: 16px;
+            background: #00b894;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: "Comic Sans MS", cursive;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: #00a085;
+            transform: scale(1.05);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .setup-info {
+            background: #74b9ff;
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 3px solid #0984e3;
+        }
+        
+        .setup-info h3 {
+            margin-top: 0;
+            color: #fff;
+        }
+        
+        .setup-info code {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px;
+            border-radius: 5px;
+            display: block;
+            margin: 10px 0;
+        }
+        
+        .delete-btn {
+            background: #d63031;
+            font-size: 12px;
+            padding: 5px 10px;
+            margin-left: 10px;
+        }
+        
+        .edit-btn {
+            background: #fdcb6e;
+            font-size: 12px;
+            padding: 5px 10px;
+            margin-left: 5px;
+        }
+    </style>
 </head>
 <body>
-  <div id="loading" class="loading">🔥 Initialisation de la connexion cosmique... 🔥</div>
-  
-  <div id="app" class="hidden">
-    <header>
-      <h1>🔥 L'Ordre Sacré de Frieren & Jägermaister 🔥</h1>
-      <nav>
-        <a href="#" onclick="showSection('home')">Accueil</a>
-        <a href="#" onclick="showSection('creed')">Préceptes</a>
-        <a href="#" onclick="showSection('rituals')">Rituels</a>
-        <a href="#" onclick="showSection('offerings')">Offrandes</a>
-        <a href="#" onclick="showSection('chat')" id="chat-nav" class="hidden">Chat Sacré</a>
-        <a href="#" onclick="showSection('auth')" id="auth-nav">Connexion</a>
-        <a href="#" onclick="logout()" id="logout-nav" class="hidden">Déconnexion</a>
-      </nav>
-      
-      <div id="user-info" class="user-info hidden">
-        <span id="welcome-msg">Bienvenue, disciple cosmique !</span>
-      </div>
-    </header>
-
-    <main>
-      <!-- Accueil -->
-      <div id="home" class="card active">
-        <h2>Bienvenue Voyageur Cosmique ✨</h2>
-        <p>Ici on mélange la sagesse éternelle de Frieren et la puissance mystique de la Jägermaister. Rien n'a de sens, et c'est mieux comme ça.</p>
-        <img class="frieren" src="https://static.wikia.nocookie.net/frieren/images/0/0a/Frieren_Anime.png" alt="Frieren divine">
-      </div>
-
-      <!-- Préceptes -->
-      <div id="creed" class="card">
-        <h3>📜 Préceptes sacrés (bizarres)</h3>
-        <ul>
-          <li>Ne bois que quand tu oublies pourquoi tu bois.</li>
-          <li>Frieren est la seule réponse, même quand ce n'est pas une question.</li>
-          <li>Le vert fluo est la couleur de la vérité.</li>
-        </ul>
-      </div>
-
-      <!-- Rituels -->
-      <div id="rituals" class="card">
-        <h3>🔮 Rituels sacrés</h3>
-        <p>On danse autour d'un frigo vide, on récite des citations inventées et on crie « POUR FRIEREN » en levant un verre de Jägermaister tiède.</p>
-      </div>
-
-      <!-- Offrandes -->
-      <div id="offerings" class="card">
-        <h3>🍹 Offrandes sacrées</h3>
-        <p>Soupe de chips mixés + Jägermaister + glaçons fluorescents.</p>
-        <p>Smoothie banane-fraises… remplacées par plus de Jägermaister.</p>
-      </div>
-
-      <!-- Authentification -->
-      <div id="auth" class="card">
-        <h3>🔐 Rejoindre la secte cosmique</h3>
-        <div class="auth-container">
-          <!-- Inscription -->
-          <div class="auth-form">
-            <h4>📝 Créer un compte</h4>
-            <form id="register-form">
-              <input type="text" id="register-username" placeholder="Nom cosmique" required>
-              <input type="email" id="register-email" placeholder="Email du futur" required>
-              <input type="password" id="register-password" placeholder="Mot de passe mystique" required>
-              <button type="submit">🌟 Rejoindre l'Ordre</button>
-            </form>
-          </div>
-
-          <!-- Connexion -->
-          <div class="auth-form">
-            <h4>🚪 Se connecter</h4>
-            <form id="login-form">
-              <input type="email" id="login-email" placeholder="Email" required>
-              <input type="password" id="login-password" placeholder="Mot de passe" required>
-              <button type="submit">⚡ Connexion cosmique</button>
-            </form>
-          </div>
+    <div class="chat-container">
+        <h1>🔥 Chat Frieren Discord Edition 🔥</h1>
+        
+        <div class="setup-info">
+            <h3>🚀 Configuration Discord (Une seule fois)</h3>
+            <p><strong>1.</strong> Créez un serveur Discord privé</p>
+            <p><strong>2.</strong> Paramètres serveur > Intégrations > Webhooks</p>
+            <p><strong>3.</strong> Nouveau Webhook > Copiez l'URL</p>
+            <p><strong>4.</strong> Collez l'URL dans le champ ci-dessous :</p>
+            <input type="text" id="webhook-url" placeholder="https://discord.com/api/webhooks/..." style="width: 100%; margin: 10px 0;">
+            <button onclick="saveWebhook()">💾 Sauvegarder</button>
         </div>
-        <div id="auth-error" class="error hidden"></div>
-      </div>
-
-      <!-- Chat -->
-      <div id="chat" class="card">
-        <h3>💬 Chat Sacré de l'Ordre</h3>
-        <div id="chat-container">
-          <div id="messages"></div>
-          <div>
-            <input type="text" id="message-input" placeholder="Partage ta sagesse cosmique..." maxlength="500">
-            <input type="file" id="image-input" accept="image/*" style="display:none;">
-            <button class="image-btn" onclick="document.getElementById('image-input').click()">📷</button>
-            <button id="send-btn" onclick="sendMessage()">🚀</button>
-          </div>
+        
+        <div id="messages"></div>
+        
+        <div class="input-area">
+            <input type="text" id="message-input" placeholder="Tapez votre message cosmique..." maxlength="2000">
+            <input type="file" id="file-input" class="file-input" accept="image/*,video/*,.gif" multiple>
+            <button onclick="document.getElementById('file-input').click()">📷 Fichiers</button>
+            <button onclick="sendMessage()">🚀 Envoyer</button>
         </div>
-      </div>
-    </main>
-
-    <footer>
-      <p>© 1987-2025 — L'Ordre de Frieren & Jägermaister. Site moche garanti.</p>
-    </footer>
-  </div>
-
-  <!-- Firebase SDK -->
-  <script type="module">
-    // Import Firebase depuis CDN
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { 
-      getAuth, 
-      createUserWithEmailAndPassword, 
-      signInWithEmailAndPassword,
-      signOut,
-      onAuthStateChanged,
-      updateProfile
-    } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      query,
-      orderBy,
-      onSnapshot,
-      serverTimestamp,
-      limit
-    } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-    import {
-      getStorage,
-      ref,
-      uploadBytes,
-      getDownloadURL
-    } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
-
-    // Configuration Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyBhyxeEHBKrhuECJKt2d7NwSN7lcv39IX0",
-      authDomain: "frieren-2-79e0c.firebaseapp.com",
-      projectId: "frieren-2-79e0c",
-      storageBucket: "frieren-2-79e0c.firebasestorage.app",
-      messagingSenderId: "861104473745",
-      appId: "1:861104473745:web:377da7b0daaf5570572130"
-    };
-
-    // Variables globales
-    let currentUser = null;
-    let messagesListener = null;
-    let app, auth, db, storage;
-
-    // Éléments DOM
-    const loadingDiv = document.getElementById('loading');
-    const appDiv = document.getElementById('app');
-    const authNav = document.getElementById('auth-nav');
-    const logoutNav = document.getElementById('logout-nav');
-    const chatNav = document.getElementById('chat-nav');
-    const userInfo = document.getElementById('user-info');
-    const welcomeMsg = document.getElementById('welcome-msg');
-    const authError = document.getElementById('auth-error');
-
-    // Initialisation Firebase
-    async function initFirebase() {
-      try {
-        console.log('🔥 Initialisation Firebase...');
         
-        app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getFirestore(app);
-        storage = getStorage(app);
-        
-        console.log('✅ Firebase initialisé');
-        
-        onAuthStateChanged(auth, (user) => {
-          console.log('👤 Auth état:', user ? user.email : 'Déconnecté');
-          
-          loadingDiv.classList.add('hidden');
-          appDiv.classList.remove('hidden');
-          
-          if (user) {
-            currentUser = user;
-            handleUserLoggedIn(user);
-          } else {
-            currentUser = null;
-            handleUserLoggedOut();
-          }
-        });
+        <div style="margin-top: 20px; text-align: center; background: rgba(255,255,255,0.7); padding: 15px; border-radius: 10px;">
+            <h3>✨ Avantages Discord Chat ✨</h3>
+            <p>✅ 100% GRATUIT • ✅ Images/GIFs/Vidéos illimitées • ✅ Fichiers jusqu'à 25MB • ✅ Historique permanent</p>
+        </div>
+    </div>
 
-        setupAuthForms();
+    <script>
+        let webhookUrl = localStorage.getItem('discord-webhook') || '';
+        let username = localStorage.getItem('chat-username') || prompt('Votre nom cosmique :') || 'Anonyme';
         
-      } catch (error) {
-        console.error('❌ Erreur Firebase:', error);
-        loadingDiv.innerHTML = '❌ Erreur: ' + error.message;
-      }
-    }
-
-    function handleUserLoggedIn(user) {
-      authNav.classList.add('hidden');
-      logoutNav.classList.remove('hidden');
-      chatNav.classList.remove('hidden');
-      userInfo.classList.remove('hidden');
-      
-      const displayName = user.displayName || user.email.split('@')[0];
-      welcomeMsg.textContent = `🌟 ${displayName} - Connecté !`;
-      
-      setupChatListener();
-    }
-
-    function handleUserLoggedOut() {
-      authNav.classList.remove('hidden');
-      logoutNav.classList.add('hidden');
-      chatNav.classList.add('hidden');
-      userInfo.classList.add('hidden');
-      
-      if (messagesListener) {
-        messagesListener();
-        messagesListener = null;
-      }
-      
-      showSection('home');
-    }
-
-    function setupAuthForms() {
-      document.getElementById('register-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        hideError();
+        localStorage.setItem('chat-username', username);
         
-        const username = document.getElementById('register-username').value;
-        const email = document.getElementById('register-email').value;
-        const password = document.getElementById('register-password').value;
-        
-        try {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          await updateProfile(userCredential.user, { displayName: username });
-          showSection('home');
-        } catch (error) {
-          showError('Erreur inscription: ' + error.message);
+        if (webhookUrl) {
+            document.getElementById('webhook-url').value = webhookUrl;
         }
-      });
-
-      document.getElementById('login-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        hideError();
         
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        
-        try {
-          await signInWithEmailAndPassword(auth, email, password);
-          showSection('home');
-        } catch (error) {
-          showError('Erreur connexion: ' + error.message);
+        function saveWebhook() {
+            const url = document.getElementById('webhook-url').value.trim();
+            if (url.includes('discord.com/api/webhooks/')) {
+                webhookUrl = url;
+                localStorage.setItem('discord-webhook', url);
+                alert('✅ Webhook Discord sauvegardé !');
+                loadMessages();
+            } else {
+                alert('❌ URL Discord Webhook invalide !');
+            }
         }
-      });
-    }
-
-    function setupChatListener() {
-      const messagesDiv = document.getElementById('messages');
-      const q = query(
-        collection(db, 'messages'),
-        orderBy('timestamp', 'desc'),
-        limit(50)
-      );
-
-      messagesListener = onSnapshot(q, (snapshot) => {
-        messagesDiv.innerHTML = '';
-        const messages = [];
         
-        snapshot.forEach((doc) => {
-          messages.push({ id: doc.id, ...doc.data() });
+        async function sendMessage() {
+            const input = document.getElementById('message-input');
+            const fileInput = document.getElementById('file-input');
+            const message = input.value.trim();
+            
+            if (!webhookUrl) {
+                alert('⚠️ Configurez d\'abord le Webhook Discord !');
+                return;
+            }
+            
+            if (!message && fileInput.files.length === 0) {
+                return;
+            }
+            
+            try {
+                const formData = new FormData();
+                
+                // Données du message
+                const payload = {
+                    username: username + ' 🔥',
+                    avatar_url: 'https://i.imgur.com/frieren.png',
+                    content: message || '📷 Fichier partagé'
+                };
+                
+                formData.append('payload_json', JSON.stringify(payload));
+                
+                // Fichiers
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    formData.append('file' + i, fileInput.files[i]);
+                }
+                
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    input.value = '';
+                    fileInput.value = '';
+                    addLocalMessage(message, username, new Date(), fileInput.files);
+                } else {
+                    alert('❌ Erreur envoi : ' + response.status);
+                }
+                
+            } catch (error) {
+                alert('❌ Erreur : ' + error.message);
+            }
+        }
+        
+        function addLocalMessage(text, user, timestamp, files = []) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            
+            const timeStr = timestamp.toLocaleTimeString('fr-FR');
+            
+            let content = `
+                <div class="timestamp">${timeStr}</div>
+                <div class="username">${user}:</div>
+            `;
+            
+            if (text) {
+                content += `<div>${escapeHtml(text)}</div>`;
+            }
+            
+            // Aperçu des fichiers
+            for (let file of files) {
+                if (file.type.startsWith('image/')) {
+                    const url = URL.createObjectURL(file);
+                    content += `<img src="${url}" alt="${file.name}" onclick="openModal('${url}')">`;
+                }
+            }
+            
+            messageDiv.innerHTML = content;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function loadMessages() {
+            // Discord ne permet pas de récupérer les messages via webhook
+            // Mais on peut voir l'historique directement sur Discord !
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = `
+                <div style="text-align: center; padding: 50px; color: #666;">
+                    <h3>💬 Messages en temps réel</h3>
+                    <p>Les messages apparaîtront ici en temps réel !</p>
+                    <p>📱 Voir l'historique complet sur Discord</p>
+                </div>
+            `;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function openModal(src) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.8); display: flex; justify-content: center;
+                align-items: center; z-index: 9999; cursor: pointer;
+            `;
+            
+            const img = document.createElement('img');
+            img.src = src;
+            img.style.cssText = 'max-width: 90%; max-height: 90%; border-radius: 15px;';
+            
+            modal.appendChild(img);
+            document.body.appendChild(modal);
+            
+            modal.onclick = () => document.body.removeChild(modal);
+        }
+        
+        // Enter pour envoyer
+        document.getElementById('message-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
         });
         
-        messages.reverse().forEach((message) => {
-          addMessageToDOM(message);
-        });
-        
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-      });
-
-      document.getElementById('message-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-          sendMessage();
-        }
-      });
-
-      document.getElementById('image-input').addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          sendImageMessage(file);
-        }
-      });
-    }
-
-    async function sendMessage() {
-      if (!currentUser) return;
-      
-      const input = document.getElementById('message-input');
-      const message = input.value.trim();
-      
-      if (!message) return;
-      
-      try {
-        await addDoc(collection(db, 'messages'), {
-          text: message,
-          username: currentUser.displayName || currentUser.email.split('@')[0],
-          userId: currentUser.uid,
-          timestamp: serverTimestamp()
-        });
-        
-        input.value = '';
-      } catch (error) {
-        showError('Erreur envoi: ' + error.message);
-      }
-    }
-
-    async function sendImageMessage(file) {
-      if (!currentUser) return;
-      
-      if (file.size > 5 * 1024 * 1024) {
-        showError('Image trop lourde (max 5MB)');
-        return;
-      }
-
-      try {
-        console.log('📤 Upload image...');
-        
-        const fileName = `images/${Date.now()}_${file.name}`;
-        const imageRef = ref(storage, fileName);
-        
-        const snapshot = await uploadBytes(imageRef, file);
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        
-        await addDoc(collection(db, 'messages'), {
-          imageUrl: downloadURL,
-          fileName: file.name,
-          fileType: file.type,
-          username: currentUser.displayName || currentUser.email.split('@')[0],
-          userId: currentUser.uid,
-          timestamp: serverTimestamp()
-        });
-        
-        document.getElementById('image-input').value = '';
-        console.log('✅ Image envoyée');
-        
-      } catch (error) {
-        console.error('❌ Erreur upload:', error);
-        showError('Erreur upload: ' + error.message);
-      }
-    }
-
-    function addMessageToDOM(message) {
-      const messagesDiv = document.getElementById('messages');
-      const messageDiv = document.createElement('div');
-      messageDiv.className = 'message';
-      
-      const timestamp = message.timestamp ? 
-        new Date(message.timestamp.seconds * 1000).toLocaleTimeString('fr-FR', {
-          hour: '2-digit',
-          minute: '2-digit'
-        }) : 'Maintenant';
-      
-      let content = '';
-      
-      if (message.imageUrl) {
-        const isGif = message.fileType === 'image/gif';
-        content = `
-          <div class="timestamp">${timestamp}</div>
-          <div class="username">${message.username}:</div>
-          <div>
-            <img src="${message.imageUrl}" 
-                 alt="${message.fileName || 'Image'}" 
-                 style="max-width:300px; max-height:300px; border:3px solid lime; border-radius:10px; cursor:pointer;"
-                 onclick="openImageModal('${message.imageUrl}', '${message.fileName || 'Image'}')">
-            <br><small style="color:#666;">📷 ${message.fileName || 'Image'} ${isGif ? '(GIF)' : ''}</small>
-          </div>
-        `;
-      } else {
-        content = `
-          <div class="timestamp">${timestamp}</div>
-          <div class="username">${message.username}:</div>
-          <div>${escapeHtml(message.text || '')}</div>
-        `;
-      }
-      
-      messageDiv.innerHTML = content;
-      messagesDiv.appendChild(messageDiv);
-    }
-
-    async function logout() {
-      try {
-        await signOut(auth);
-      } catch (error) {
-        showError('Erreur déconnexion: ' + error.message);
-      }
-    }
-
-    function showError(message) {
-      authError.textContent = message;
-      authError.classList.remove('hidden');
-      setTimeout(hideError, 5000);
-    }
-
-    function hideError() {
-      authError.classList.add('hidden');
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    function openImageModal(imageUrl, fileName) {
-      const modal = document.createElement('div');
-      modal.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.8); display: flex; justify-content: center;
-        align-items: center; z-index: 9999; cursor: pointer;
-      `;
-      
-      const img = document.createElement('img');
-      img.src = imageUrl;
-      img.alt = fileName;
-      img.style.cssText = `
-        max-width: 90%; max-height: 90%; border: 5px solid lime;
-        border-radius: 15px; cursor: default;
-      `;
-      
-      modal.appendChild(img);
-      document.body.appendChild(modal);
-      
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          document.body.removeChild(modal);
-        }
-      });
-    }
-
-    window.sendMessage = sendMessage;
-    window.logout = logout;
-    window.openImageModal = openImageModal;
-
-    initFirebase();
-  </script>
-
-  <script>
-    function showSection(sectionName) {
-      const cards = document.querySelectorAll('.card');
-      cards.forEach(card => card.classList.remove('active'));
-      
-      const targetSection = document.getElementById(sectionName);
-      if (targetSection) {
-        targetSection.classList.add('active');
-      }
-    }
-
-    window.showSection = showSection;
-  </script>
+        loadMessages();
+    </script>
 </body>
 </html>
