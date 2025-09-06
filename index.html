@@ -389,7 +389,6 @@
         <div class="admin-panel">
           <h3>👑 Panel Administrateur Cosmique</h3>
           <div style="display:flex; gap:20px; flex-wrap:wrap;">
-            <button onclick="showUserManagement()">👥 Gestion Utilisateurs</button>
             <button onclick="clearAllMessages()">🗑️ Vider le Chat</button>
             <button onclick="exportData()">📊 Export Données</button>
           </div>
@@ -404,7 +403,7 @@
           <div id="chat-container">
             <div id="messages"></div>
             <div>
-              <input type="text" id="message-input" placeholder="Partage ta sagesse cosmique..." maxlength="2000">
+              <input type="text" id="message-input" placeholder="Partage ta sagesse cosmique..." maxlength="500">
               <input type="file" id="image-input" accept="image/*,.gif" style="display:none;" multiple>
               <button class="image-btn" onclick="document.getElementById('image-input').click()">📷</button>
               <button id="send-btn" onclick="sendMessage()">🚀</button>
@@ -425,36 +424,6 @@
     </footer>
   </div>
 
-  <!-- Modals -->
-  <div id="user-management-modal" class="modal hidden">
-    <div class="modal-content">
-      <h3>👥 Gestion des Utilisateurs</h3>
-      <div id="users-management-list"></div>
-      <button onclick="closeModal()">Fermer</button>
-    </div>
-  </div>
-
-  <div id="mute-modal" class="modal hidden">
-    <div class="modal-content">
-      <h3>🔇 Muter un Utilisateur</h3>
-      <input type="text" id="mute-reason" placeholder="Raison du mute">
-      <select id="mute-duration">
-        <option value="300">5 minutes</option>
-        <option value="1800">30 minutes</option>
-        <option value="3600">1 heure</option>
-        <option value="86400">24 heures</option>
-        <option value="604800">7 jours</option>
-        <option value="2592000">30 jours</option>
-        <option value="permanent">Permanent</option>
-      </select>
-      <div style="margin-top:15px;">
-        <button onclick="confirmMute()">Confirmer Mute</button>
-        <button onclick="closeModal()">Annuler</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Firebase SDK -->
   <script type="module">
     // Import Firebase
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -464,8 +433,7 @@
       signInWithEmailAndPassword,
       signOut,
       onAuthStateChanged,
-      updateProfile,
-      deleteUser
+      updateProfile
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import {
       getFirestore,
@@ -481,15 +449,13 @@
       deleteDoc,
       setDoc,
       getDoc,
-      getDocs,
-      where
+      getDocs
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
     import {
       getStorage,
       ref,
       uploadBytes,
-      getDownloadURL,
-      deleteObject
+      getDownloadURL
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
     // Configuration Firebase
@@ -508,7 +474,6 @@
     let isAdmin = false;
     let messagesListener = null;
     let usersListener = null;
-    let currentMuteTarget = null;
     let app, auth, db, storage;
 
     // Éléments DOM
@@ -577,9 +542,6 @@
       
       setupChatListener();
       setupUsersListener();
-      
-      // Vérifier si l'utilisateur est muted
-      await checkUserMuteStatus();
     }
 
     function handleUserLoggedOut() {
@@ -615,40 +577,28 @@
       }
     }
 
-    async function checkUserMuteStatus() {
-      try {
-        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          if (data.mutedUntil) {
-            const muteEnd = new Date(data.mutedUntil.seconds * 1000);
-            if (muteEnd > new Date()) {
-              showError(`Vous êtes mute jusqu'à ${muteEnd.toLocaleString()}`);
-              document.getElementById('message-input').disabled = true;
-              document.getElementById('send-btn').disabled = true;
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Erreur check mute:', error);
-      }
-    }
-
     function setupAuthForms() {
       document.getElementById('register-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         hideError();
         
-        const username = document.getElementById('register-username').value;
-        const email = document.getElementById('register-email').value;
+        const username = document.getElementById('register-username').value.trim();
+        const email = document.getElementById('register-email').value.trim();
         const password = document.getElementById('register-password').value;
+        
+        if (!username || !email || !password) {
+          showError('Veuillez remplir tous les champs');
+          return;
+        }
         
         try {
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           await updateProfile(userCredential.user, { displayName: username });
           showSection('home');
+          showSuccess('Inscription réussie !');
         } catch (error) {
-          showError('Erreur inscription: ' + error.message);
+          console.error('Erreur inscription:', error);
+          showError('Erreur inscription: ' + getFirebaseErrorMessage(error));
         }
       });
 
@@ -656,14 +606,21 @@
         e.preventDefault();
         hideError();
         
-        const email = document.getElementById('login-email').value;
+        const email = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-password').value;
+        
+        if (!email || !password) {
+          showError('Veuillez remplir tous les champs');
+          return;
+        }
         
         try {
           await signInWithEmailAndPassword(auth, email, password);
           showSection('home');
+          showSuccess('Connexion réussie !');
         } catch (error) {
-          showError('Erreur connexion: ' + error.message);
+          console.error('Erreur connexion:', error);
+          showError('Erreur connexion: ' + getFirebaseErrorMessage(error));
         }
       });
     }
@@ -689,6 +646,9 @@
         });
         
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }, (error) => {
+        console.error('Erreur chat listener:', error);
+        showError('Erreur lors du chargement des messages');
       });
 
       document.getElementById('message-input').addEventListener('keypress', (e) => {
@@ -727,19 +687,20 @@
         users.forEach((user) => {
           addUserToList(user);
         });
+      }, (error) => {
+        console.error('Erreur users listener:', error);
       });
     }
 
     function addUserToList(user) {
       const usersListDiv = document.getElementById('users-list');
       const userDiv = document.createElement('div');
-      userDiv.className = `user-item ${user.status || 'offline'} ${user.mutedUntil ? 'muted' : ''}`;
+      userDiv.className = `user-item ${user.status || 'offline'}`;
       
       const statusText = user.status === 'online' ? 'En ligne' : 'Hors ligne';
-      const muteText = user.mutedUntil ? ' (Mute)' : '';
       
       userDiv.innerHTML = `
-        <span>${user.username || 'Anonyme'}${user.isAdmin ? ' 👑' : ''}${muteText}</span>
+        <span>${user.username || 'Anonyme'}${user.isAdmin ? ' 👑' : ''}</span>
         <span class="user-status status-${user.status || 'offline'}">${statusText}</span>
       `;
       
@@ -754,21 +715,9 @@
       
       if (!message) return;
       
-      // Vérifier si l'utilisateur est mute
-      try {
-        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          if (data.mutedUntil) {
-            const muteEnd = new Date(data.mutedUntil.seconds * 1000);
-            if (muteEnd > new Date()) {
-              showError(`Vous êtes mute jusqu'à ${muteEnd.toLocaleString()}`);
-              return;
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Erreur check mute:', error);
+      if (message.length > 500) {
+        showError('Message trop long (max 500 caractères)');
+        return;
       }
       
       try {
@@ -783,7 +732,8 @@
         
         input.value = '';
       } catch (error) {
-        showError('Erreur envoi: ' + error.message);
+        console.error('Erreur envoi message:', error);
+        showError('Erreur envoi: ' + getFirebaseErrorMessage(error));
       }
     }
 
@@ -792,14 +742,14 @@
       
       try {
         for (const file of files) {
-          if (file.size > 50 * 1024 * 1024) {
-            showError(`Fichier ${file.name} trop lourd (max 50MB)`);
+          if (file.size > 5 * 1024 * 1024) {
+            showError(`Fichier ${file.name} trop lourd (max 5MB)`);
             continue;
           }
           
           console.log('📤 Upload image...');
           
-          const fileName = `images/${Date.now()}_${file.name}`;
+          const fileName = `images/${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${file.name}`;
           const imageRef = ref(storage, fileName);
           
           const snapshot = await uploadBytes(imageRef, file);
@@ -820,10 +770,11 @@
         
         document.getElementById('image-input').value = '';
         console.log('✅ Images envoyées');
+        showSuccess('Images envoyées avec succès !');
         
       } catch (error) {
         console.error('❌ Erreur upload:', error);
-        showError('Erreur upload: ' + error.message);
+        showError('Erreur upload: ' + getFirebaseErrorMessage(error));
       }
     }
 
@@ -845,10 +796,169 @@
       `;
       
       if (message.type === 'image' && message.imageUrl) {
-        const isGif = message.fileType === 'image/gif';
         content += `
           <div>
             <img src="${message.imageUrl}" 
                  alt="${message.fileName || 'Image'}" 
-                 onclick="openImageModal('${message.imageUrl}', '${message.fileName || 'Image'}')">
-            <br><small style="color:#666
+                 onclick="openImage('${message.imageUrl}')">
+            <br><small style="color:#666">${message.fileName || 'Image'}</small>
+          </div>
+        `;
+      } else if (message.text) {
+        content += `<div>${escapeHtml(message.text)}</div>`;
+      }
+      
+      messageDiv.innerHTML = content;
+      messagesDiv.appendChild(messageDiv);
+    }
+
+    function openImage(imageUrl) {
+      window.open(imageUrl, '_blank');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    async function clearAllMessages() {
+      if (!isAdmin) return;
+      
+      if (!confirm('Voulez-vous vraiment supprimer tous les messages ?')) return;
+      
+      try {
+        const messagesQuery = query(collection(db, 'messages'));
+        const snapshot = await getDocs(messagesQuery);
+        
+        const deletePromises = [];
+        snapshot.forEach((doc) => {
+          deletePromises.push(deleteDoc(doc.ref));
+        });
+        
+        await Promise.all(deletePromises);
+        showSuccess('Tous les messages ont été supprimés');
+      } catch (error) {
+        console.error('Erreur suppression messages:', error);
+        showError('Erreur lors de la suppression: ' + error.message);
+      }
+    }
+
+    function exportData() {
+      if (!isAdmin) return;
+      alert('Fonctionnalité d\'export en développement');
+    }
+
+    // Fonctions utilitaires globales
+    window.showSection = function(sectionName) {
+      document.querySelectorAll('.card').forEach(card => {
+        card.classList.remove('active');
+      });
+      
+      const targetSection = document.getElementById(sectionName);
+      if (targetSection) {
+        targetSection.classList.add('active');
+      }
+    };
+
+    window.logout = async function() {
+      try {
+        if (currentUser) {
+          await updateUserStatus(currentUser.uid, currentUser.displayName || 'Anonyme', 'offline');
+        }
+        await signOut(auth);
+        showSuccess('Déconnexion réussie');
+      } catch (error) {
+        console.error('Erreur déconnexion:', error);
+        showError('Erreur lors de la déconnexion');
+      }
+    };
+
+    window.sendMessage = sendMessage;
+    window.clearAllMessages = clearAllMessages;
+    window.exportData = exportData;
+
+    function showError(message) {
+      authError.textContent = message;
+      authError.classList.remove('hidden');
+      setTimeout(() => {
+        hideError();
+      }, 5000);
+    }
+
+    function hideError() {
+      authError.classList.add('hidden');
+      authError.textContent = '';
+    }
+
+    function showSuccess(message) {
+      // Créer un élément de succès temporaire
+      const successDiv = document.createElement('div');
+      successDiv.className = 'success';
+      successDiv.textContent = message;
+      successDiv.style.position = 'fixed';
+      successDiv.style.top = '20px';
+      successDiv.style.right = '20px';
+      successDiv.style.zIndex = '10000';
+      
+      document.body.appendChild(successDiv);
+      
+      setTimeout(() => {
+        if (successDiv.parentNode) {
+          successDiv.parentNode.removeChild(successDiv);
+        }
+      }, 3000);
+    }
+
+    function getFirebaseErrorMessage(error) {
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          return 'Cet email est déjà utilisé';
+        case 'auth/weak-password':
+          return 'Mot de passe trop faible (min 6 caractères)';
+        case 'auth/invalid-email':
+          return 'Email invalide';
+        case 'auth/user-not-found':
+          return 'Utilisateur introuvable';
+        case 'auth/wrong-password':
+          return 'Mot de passe incorrect';
+        case 'auth/too-many-requests':
+          return 'Trop de tentatives, réessayez plus tard';
+        case 'permission-denied':
+          return 'Permissions insuffisantes';
+        case 'unavailable':
+          return 'Service temporairement indisponible';
+        default:
+          return error.message || 'Erreur inconnue';
+      }
+    }
+
+    // Gérer la déconnexion à la fermeture de la page
+    window.addEventListener('beforeunload', async () => {
+      if (currentUser) {
+        try {
+          await updateUserStatus(currentUser.uid, currentUser.displayName || 'Anonyme', 'offline');
+        } catch (error) {
+          console.error('Erreur mise à jour statut:', error);
+        }
+      }
+    });
+
+    // Gérer la perte de focus/retour sur la page
+    document.addEventListener('visibilitychange', async () => {
+      if (currentUser) {
+        try {
+          const status = document.hidden ? 'offline' : 'online';
+          await updateUserStatus(currentUser.uid, currentUser.displayName || 'Anonyme', status);
+        } catch (error) {
+          console.error('Erreur visibilitychange:', error);
+        }
+      }
+    });
+
+    // Initialiser l'application
+    initFirebase();
+
+  </script>
+</body>
+</html>
