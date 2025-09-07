@@ -419,6 +419,12 @@
       
       if (isAdmin) $('admin-nav').classList.remove('hidden');
       
+      // Afficher/masquer le panel admin des prophéties
+      const adminProphecyPanel = document.getElementById('admin-prophecy-panel');
+      if (adminProphecyPanel) {
+        adminProphecyPanel.style.display = isAdmin ? 'block' : 'none';
+      }
+      
       const name = user.displayName || user.email.split('@')[0];
       $('welcome-msg').textContent = `🌟 ${name}${isAdmin ? ' 👑' : ''} - Connecté !`;
       
