@@ -1,694 +1,227 @@
+
 <!DOCTYPE html>
-<html lang="fr">
-<head>
+<html>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌊 AUTISM BEACH 🌊</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Creepster&family=Bungee&display=swap');
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            overflow-x: hidden;
-            overflow-y: auto;
-            font-family: 'Orbitron', monospace;
-            background: linear-gradient(45deg, #ff00ff, #00ffff, #ffff00, #ff0080, #8000ff, #00ff80);
-            background-size: 600% 600%;
-            animation: psychedelicBg 2s ease infinite, bodyShake 5s linear infinite;
-            cursor: none;
-            position: relative;
-            min-height: 200vh;
-        }
-        
-        @keyframes psychedelicBg {
-            0% { background-position: 0% 50%; filter: hue-rotate(0deg); }
-            25% { background-position: 100% 0%; filter: hue-rotate(90deg); }
-            50% { background-position: 100% 100%; filter: hue-rotate(180deg); }
-            75% { background-position: 0% 100%; filter: hue-rotate(270deg); }
-            100% { background-position: 0% 50%; filter: hue-rotate(360deg); }
-        }
-        
-        @keyframes bodyShake {
-            0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-        }
-        
-        .container {
-            position: relative;
-            min-height: 200vh;
-            overflow: visible;
-        }
-        
-        /* Curseur délirant */
-        .custom-cursor {
-            position: fixed;
-            width: 40px;
-            height: 40px;
-            background: radial-gradient(circle, #ff00ff, #00ffff, #ffff00);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            mix-blend-mode: difference;
-            animation: cursorCrazy 0.1s ease infinite;
-            border: 3px solid white;
-            box-shadow: 0 0 20px #ff00ff;
-        }
-        
-        @keyframes cursorCrazy {
-            0% { transform: scale(1) rotate(0deg); }
-            25% { transform: scale(1.8) rotate(90deg); }
-            50% { transform: scale(0.5) rotate(180deg); }
-            75% { transform: scale(2) rotate(270deg); }
-            100% { transform: scale(1) rotate(360deg); }
-        }
-        
-        /* Images psychédéliques dispersées */
-        .psychedelic-img {
-            position: absolute;
-            font-size: clamp(40px, 8vw, 120px);
-            animation: imgCrazy 4s ease-in-out infinite;
-            mix-blend-mode: multiply;
-            filter: saturate(3) contrast(2);
-            z-index: 10;
-        }
-        
-        .psychedelic-img:nth-child(odd) {
-            animation-direction: reverse;
-        }
-        
-        @keyframes imgCrazy {
-            0% { 
-                transform: rotate(0deg) scale(1) skew(0deg); 
-                filter: saturate(3) contrast(2) hue-rotate(0deg);
-            }
-            25% { 
-                transform: rotate(90deg) scale(1.5) skew(10deg); 
-                filter: saturate(5) contrast(3) hue-rotate(90deg);
-            }
-            50% { 
-                transform: rotate(180deg) scale(0.8) skew(-15deg); 
-                filter: saturate(2) contrast(4) hue-rotate(180deg);
-            }
-            75% { 
-                transform: rotate(270deg) scale(2) skew(5deg); 
-                filter: saturate(6) contrast(1) hue-rotate(270deg);
-            }
-            100% { 
-                transform: rotate(360deg) scale(1) skew(0deg); 
-                filter: saturate(3) contrast(2) hue-rotate(360deg);
-            }
-        }
-        
-        /* Vagues ultra trippy */
-        .wave {
-            position: absolute;
-            bottom: 0;
-            left: -50%;
-            width: 300%;
-            height: 300px;
-            background: linear-gradient(90deg, 
-                transparent, 
-                rgba(255, 0, 255, 0.6), 
-                rgba(0, 255, 255, 0.8),
-                rgba(255, 255, 0, 0.5),
-                transparent
-            );
-            animation: wave-insane 2s ease-in-out infinite;
-            transform-origin: center bottom;
-            mix-blend-mode: screen;
-        }
-        
-        .wave:nth-child(even) {
-            animation-delay: -0.5s;
-            background: linear-gradient(90deg, 
-                transparent, 
-                rgba(128, 0, 255, 0.7), 
-                rgba(255, 128, 0, 0.6),
-                rgba(0, 255, 128, 0.8),
-                transparent
-            );
-            animation-direction: reverse;
-        }
-        
-        @keyframes wave-insane {
-            0% { 
-                transform: translateX(-30%) rotate(0deg) scaleY(1) scaleX(1); 
-                opacity: 0.8;
-            }
-            25% { 
-                transform: translateX(-20%) rotate(15deg) scaleY(2) scaleX(1.2); 
-                opacity: 1;
-            }
-            50% { 
-                transform: translateX(-40%) rotate(-10deg) scaleY(0.5) scaleX(0.8); 
-                opacity: 0.6;
-            }
-            75% { 
-                transform: translateX(-10%) rotate(25deg) scaleY(1.8) scaleX(1.5); 
-                opacity: 0.9;
-            }
-            100% { 
-                transform: translateX(-30%) rotate(0deg) scaleY(1) scaleX(1); 
-                opacity: 0.8;
-            }
-        }
-        
-        /* Texte AUTISM ultra délirant */
-        .autism-text {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: clamp(80px, 20vw, 300px);
-            font-weight: 900;
-            font-family: 'Bungee', cursive;
-            color: transparent;
-            background: linear-gradient(45deg, 
-                #ff0080, #8000ff, #0080ff, #00ff80, 
-                #ff8000, #ff0040, #4000ff, #0040ff
-            );
-            background-size: 800% 800%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            animation: textUltraRainbow 1s ease infinite, textMegaFloat 3s ease-in-out infinite;
-            text-shadow: 
-                0 0 50px rgba(255, 0, 255, 1),
-                0 0 100px rgba(0, 255, 255, 0.8),
-                0 0 150px rgba(255, 255, 0, 0.6);
-            z-index: 1000;
-            letter-spacing: 15px;
-            filter: drop-shadow(10px 10px 20px rgba(255, 0, 255, 0.8));
-        }
-        
-        @keyframes textUltraRainbow {
-            0% { background-position: 0% 0%; }
-            25% { background-position: 100% 0%; }
-            50% { background-position: 100% 100%; }
-            75% { background-position: 0% 100%; }
-            100% { background-position: 0% 0%; }
-        }
-        
-        @keyframes textMegaFloat {
-            0% { 
-                transform: translate(-50%, -50%) rotate(0deg) scale(1) skew(0deg, 0deg); 
-                filter: blur(0px);
-            }
-            25% { 
-                transform: translate(-50%, -50%) rotate(5deg) scale(1.2) skew(5deg, 2deg); 
-                filter: blur(1px);
-            }
-            50% { 
-                transform: translate(-50%, -50%) rotate(-3deg) scale(0.9) skew(-3deg, -1deg); 
-                filter: blur(2px);
-            }
-            75% { 
-                transform: translate(-50%, -50%) rotate(8deg) scale(1.1) skew(2deg, -4deg); 
-                filter: blur(0.5px);
-            }
-            100% { 
-                transform: translate(-50%, -50%) rotate(0deg) scale(1) skew(0deg, 0deg); 
-                filter: blur(0px);
-            }
-        }
-        
-        /* Particules de l'enfer */
-        .particle {
-            position: absolute;
-            border-radius: 50%;
-            pointer-events: none;
-            animation: particleInsane 6s linear infinite;
-            mix-blend-mode: screen;
-        }
-        
-        @keyframes particleInsane {
-            0% {
-                transform: translateY(100vh) rotate(0deg) scale(0);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-                transform: translateY(90vh) rotate(36deg) scale(1);
-            }
-            50% {
-                transform: translateY(50vh) rotate(180deg) scale(2);
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-                transform: translateY(10vh) rotate(324deg) scale(0.5);
-            }
-            100% {
-                transform: translateY(-10vh) rotate(360deg) scale(0);
-                opacity: 0;
-            }
-        }
-        
-        /* Soleil ultra trippy */
-        .psychedelic-sun {
-            position: absolute;
-            top: 5%;
-            right: 5%;
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, 
-                #ffff00 0%, 
-                #ff8000 30%, 
-                #ff0080 60%, 
-                #8000ff 100%
-            );
-            border-radius: 50%;
-            animation: sunMegaSpin 3s linear infinite, sunMegaPulse 2s ease-in-out infinite;
-            box-shadow: 
-                0 0 100px rgba(255, 255, 0, 1),
-                0 0 200px rgba(255, 128, 0, 0.8),
-                0 0 300px rgba(255, 0, 128, 0.6);
-            filter: saturate(3) contrast(2);
-            z-index: 50;
-        }
-        
-        .psychedelic-sun::before, .psychedelic-sun::after {
-            content: '';
-            position: absolute;
-            top: -30px;
-            left: -30px;
-            right: -30px;
-            bottom: -30px;
-            background: conic-gradient(from 0deg, 
-                transparent 0deg, 
-                #ffff00 45deg, 
-                transparent 90deg,
-                #ff0080 135deg,
-                transparent 180deg,
-                #00ffff 225deg,
-                transparent 270deg,
-                #8000ff 315deg,
-                transparent 360deg
-            );
-            border-radius: 50%;
-            animation: sunMegaRays 2s linear infinite;
-            z-index: -1;
-        }
-        
-        .psychedelic-sun::after {
-            animation-direction: reverse;
-            animation-duration: 3s;
-        }
-        
-        @keyframes sunMegaSpin {
-            from { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(1.3); }
-            to { transform: rotate(360deg) scale(1); }
-        }
-        
-        @keyframes sunMegaPulse {
-            0%, 100% { 
-                transform: scale(1); 
-                filter: saturate(3) contrast(2) hue-rotate(0deg);
-            }
-            50% { 
-                transform: scale(1.5); 
-                filter: saturate(5) contrast(4) hue-rotate(180deg);
-            }
-        }
-        
-        @keyframes sunMegaRays {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Éléments visuels fous dispersés */
-        .crazy-element {
-            position: absolute;
-            font-size: clamp(30px, 6vw, 100px);
-            animation: crazyMove 8s ease-in-out infinite;
-            mix-blend-mode: difference;
-            filter: saturate(4) contrast(3);
-            z-index: 20;
-        }
-        
-        @keyframes crazyMove {
-            0% { 
-                transform: rotate(0deg) scale(1) translate(0px, 0px); 
-                filter: hue-rotate(0deg) saturate(4);
-            }
-            20% { 
-                transform: rotate(72deg) scale(1.8) translate(50px, -30px); 
-                filter: hue-rotate(72deg) saturate(2);
-            }
-            40% { 
-                transform: rotate(144deg) scale(0.6) translate(-40px, 60px); 
-                filter: hue-rotate(144deg) saturate(6);
-            }
-            60% { 
-                transform: rotate(216deg) scale(2.2) translate(30px, -80px); 
-                filter: hue-rotate(216deg) saturate(3);
-            }
-            80% { 
-                transform: rotate(288deg) scale(0.8) translate(-60px, 40px); 
-                filter: hue-rotate(288deg) saturate(5);
-            }
-            100% { 
-                transform: rotate(360deg) scale(1) translate(0px, 0px); 
-                filter: hue-rotate(360deg) saturate(4);
-            }
-        }
-        
-        /* Matrix rain extrême */
-        .matrix-rain {
-            position: absolute;
-            top: -50px;
-            font-family: 'Creepster', cursive;
-            color: #00ff00;
-            font-size: clamp(15px, 3vw, 30px);
-            animation: matrixExtreme 4s linear infinite;
-            opacity: 0.7;
-            text-shadow: 0 0 20px #00ff00;
-            z-index: 5;
-        }
-        
-        @keyframes matrixExtreme {
-            0% { 
-                transform: translateY(-100px) rotate(0deg); 
-                opacity: 0; 
-                filter: hue-rotate(0deg);
-            }
-            10% { 
-                opacity: 0.7; 
-                filter: hue-rotate(36deg);
-            }
-            90% { 
-                opacity: 0.7; 
-                filter: hue-rotate(324deg);
-            }
-            100% { 
-                transform: translateY(120vh) rotate(360deg); 
-                opacity: 0; 
-                filter: hue-rotate(360deg);
-            }
-        }
-        
-        /* Effet de glitch sur tout */
-        .glitch-effect {
-            animation: glitch 0.3s ease infinite;
-        }
-        
-        @keyframes glitch {
-            0% { 
-                transform: translate(0);
-                filter: hue-rotate(0deg);
-            }
-            20% { 
-                transform: translate(-2px, 2px);
-                filter: hue-rotate(90deg);
-            }
-            40% { 
-                transform: translate(-2px, -2px);
-                filter: hue-rotate(180deg);
-            }
-            60% { 
-                transform: translate(2px, 2px);
-                filter: hue-rotate(270deg);
-            }
-            80% { 
-                transform: translate(2px, -2px);
-                filter: hue-rotate(360deg);
-            }
-            100% { 
-                transform: translate(0);
-                filter: hue-rotate(0deg);
-            }
-        }
-        
-        /* Overlay psychédélique */
-        .psychedelic-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 50% 50%, 
-                transparent 0%, 
-                rgba(255, 0, 255, 0.1) 50%, 
-                rgba(0, 255, 255, 0.1) 100%
-            );
-            animation: overlayPulse 4s ease-in-out infinite;
-            pointer-events: none;
-            z-index: 999;
-            mix-blend-mode: overlay;
-        }
-        
-        @keyframes overlayPulse {
-            0%, 100% { 
-                opacity: 0.3; 
-                transform: scale(1);
-            }
-            50% { 
-                opacity: 0.8; 
-                transform: scale(1.1);
-            }
-        }
-        
-        /* Textes délirants dispersés */
-        .crazy-text {
-            position: absolute;
-            font-family: 'Creepster', cursive;
-            font-size: clamp(20px, 4vw, 60px);
-            color: #ff00ff;
-            text-shadow: 0 0 30px currentColor;
-            animation: textWave 6s ease-in-out infinite;
-            mix-blend-mode: difference;
-            z-index: 30;
-            transform-origin: center;
-        }
-        
-        @keyframes textWave {
-            0%, 100% { 
-                transform: rotate(0deg) scale(1) skew(0deg);
-                filter: hue-rotate(0deg);
-            }
-            25% { 
-                transform: rotate(10deg) scale(1.3) skew(5deg);
-                filter: hue-rotate(90deg);
-            }
-            50% { 
-                transform: rotate(-5deg) scale(0.8) skew(-8deg);
-                filter: hue-rotate(180deg);
-            }
-            75% { 
-                transform: rotate(15deg) scale(1.1) skew(3deg);
-                filter: hue-rotate(270deg);
-            }
-        }
-        
-        /* Effet click extrême */
-        .click-effect {
-            position: absolute;
-            border: 5px solid #ff00ff;
-            border-radius: 50%;
-            pointer-events: none;
-            animation: clickMegaExpand 1s ease-out forwards;
-            mix-blend-mode: difference;
-            z-index: 9998;
-        }
-        
-        @keyframes clickMegaExpand {
-            0% {
-                width: 0;
-                height: 0;
-                opacity: 1;
-                transform: rotate(0deg);
-                border-width: 5px;
-            }
-            50% {
-                opacity: 0.8;
-                transform: rotate(180deg);
-                border-width: 10px;
-            }
-            100% {
-                width: 400px;
-                height: 400px;
-                opacity: 0;
-                transform: rotate(360deg);
-                border-width: 2px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="custom-cursor"></div>
-    <div class="psychedelic-overlay"></div>
+    <title>radioactive girl zone</title>
+    <!-- The style.css file allows you to change the look of your web pages.
+         If you include the next line in all your web pages, they will all share the same look.
+         This makes it easier to make new pages for your site. -->
+    <link href="/style.css" rel="stylesheet" type="text/css" media="all">
+  </head>
+ <body background="images/BtBg.gif" bgcolor="#FFFFFF" link="#0000FF" vlink="#FF0000" text="#000000">
+    <h1>WELCOME TO MISHKA DOT COM.COM </h1>
+  
     
-    <div class="container">
-        <!-- Vagues ultra trippy (multiple couches) -->
-        <div class="wave"></div>
-        <div class="wave"></div>
-        <div class="wave"></div>
-        <div class="wave"></div>
-        <div class="wave"></div>
-        
-        <!-- Texte principal AUTISM -->
-        <div class="autism-text glitch-effect" id="autismText">AUTISM</div>
-        
-        <!-- Soleil ultra psychédélique -->
-        <div class="psychedelic-sun"></div>
-        
-        <!-- Images/émojis psychédéliques dispersés partout -->
-        <div class="psychedelic-img" style="top: 10%; left: -5%; transform: rotate(45deg);">🌊</div>
-        <div class="psychedelic-img" style="top: 20%; right: -10%; transform: rotate(-30deg);">🏖️</div>
-        <div class="psychedelic-img" style="top: 70%; left: -8%; transform: rotate(120deg);">🐚</div>
-        <div class="psychedelic-img" style="top: 80%; right: -5%; transform: rotate(-60deg);">🦀</div>
-        <div class="psychedelic-img" style="top: 30%; left: 105%; transform: rotate(90deg);">🏄‍♀️</div>
-        <div class="psychedelic-img" style="top: 50%; right: 105%; transform: rotate(-150deg);">🐙</div>
-        <div class="psychedelic-img" style="top: 5%; left: 20%; transform: rotate(180deg);">🌺</div>
-        <div class="psychedelic-img" style="top: 85%; left: 80%; transform: rotate(270deg);">🦜</div>
-        <div class="psychedelic-img" style="top: 40%; left: -12%; transform: rotate(210deg);">🏝️</div>
-        <div class="psychedelic-img" style="top: 60%; right: -15%; transform: rotate(330deg);">🐬</div>
-        
-        <!-- Éléments délirants supplémentaires -->
-        <div class="crazy-element" style="top: 15%; left: 10%;">🌀</div>
-        <div class="crazy-element" style="top: 75%; right: 15%;">⚡</div>
-        <div class="crazy-element" style="top: 35%; left: 80%;">💫</div>
-        <div class="crazy-element" style="top: 55%; left: 5%;">🔥</div>
-        <div class="crazy-element" style="top: 25%; right: 5%;">✨</div>
-        <div class="crazy-element" style="top: 65%; left: 60%;">💎</div>
-        <div class="crazy-element" style="top: 45%; right: 40%;">🌟</div>
-        <div class="crazy-element" style="top: 85%; left: 30%;">🎨</div>
-        <div class="crazy-element" style="top: 5%; left: 70%;">🎭</div>
-        <div class="crazy-element" style="top: 95%; right: 20%;">🎪</div>
-        
-        <!-- Textes délirants dispersés -->
-        <div class="crazy-text" style="top: 12%; left: 50%; transform: rotate(25deg);">TRIP</div>
-        <div class="crazy-text" style="top: 78%; right: 30%; transform: rotate(-45deg);">VIBES</div>
-        <div class="crazy-text" style="top: 25%; left: 5%; transform: rotate(60deg);">CHAOS</div>
-        <div class="crazy-text" style="top: 90%; left: 70%; transform: rotate(-75deg);">DREAM</div>
-        <div class="crazy-text" style="top: 45%; right: 10%; transform: rotate(105deg);">WILD</div>
-        <div class="crazy-text" style="top: 8%; right: 50%; transform: rotate(-120deg);">MAGIC</div>
-        <div class="crazy-text" style="top: 88%; left: 15%; transform: rotate(135deg);">FLOW</div>
-        
-        <!-- Palmiers ultra délirants -->
-        <div class="psychedelic-img" style="bottom: 15%; left: 8%; transform: rotate(15deg) scale(1.5);">🌴</div>
-        <div class="psychedelic-img" style="bottom: 20%; right: 12%; transform: rotate(-20deg) scale(1.3);">🌴</div>
-        <div class="psychedelic-img" style="bottom: 25%; left: 85%; transform: rotate(35deg) scale(1.8);">🌴</div>
-    </div>
+    
+ <center>  <img src = "images/pony-town-{мαgı¢αι gıгι мısнĸα}-trot-blinking-4x.gif" />
+  <img src = "images/pony-town-{мαgı¢αι gıгι мısнĸα}-trot-blinking-4x.gif" />
+   <img src = "images/pony-town-{мαgı¢αι gıгι мısнĸα}-trot-blinking-4x.gif" />
+    <img src = "images/pony-town-{мαgı¢αι gıгι мısнĸα}-trot-blinking-4x.gif" /></center>
 
-    <script>
-        // Curseur ultra délirant
-        const cursor = document.querySelector('.custom-cursor');
-        let mouseX = 0, mouseY = 0;
-        let cursorTrail = [];
-        
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
+   
+   <center> <a href = "https://mishkadotcom.neocities.org/mewmewfanzone.html" > <img src = "images/VBCAPW0YXXCA1RRZH7CA0MNBQFCAID155FCAO0GCOJCAV8BMH8CAYBSW8WCAFMT5P3CAE83521CALAM32JCAQYKGOZCA2JB2BPCAP0U43SCAXJVR79CAACE9U5CAFH3LLNCA1X1O3NCAMY8CGICAY9XWBX.jpg" width = "300px" height = "300px"/> </a>
+   <img src = "images/fox.jpg" alt = "my fursona!" width = "300px" height = "300px" /> 
+   <center>
+   <a href = "https://mishkadotcom.neocities.org/indexbackup.html"> <img src = "images/MISHKA.gif" /> </a>
+     <a href = "https://mishkadotcom.neocities.org/indexbackup.html"> <img src = "images/MISHKA.gif" /> </a>
+       <a href = "https://mishkadotcom.neocities.org/indexbackup.html"> <img src = "images/MISHKA.gif" /> </a>
+         <a href = "https://mishkadotcom.neocities.org/indexbackup.html"> <img src = "images/MISHKA.gif" /> </a>
+            <a href = "https://mishkadotcom.neocities.org/indexbackup.html"> <img src = "images/MISHKA.gif" /> </a>
+     <a href = "https://mishkadotcom.neocities.org/indexbackup.html"> <img src = "images/MISHKA.gif" /> </a>
+       <a href = "https://mishkadotcom.neocities.org/indexbackup.html"> <img src = "images/MISHKA.gif" /> </a>
+         <a href = "https://mishkadotcom.neocities.org/indexbackup.html"> <img src = "images/MISHKA.gif" /> </a>
+
+
+   </center>
+   
+   <center>
+    <a href = "https://mishkadotcom.neocities.org/magicbabymuseum.html">  <img src = "images/WJXpNea.jpg"  width = "600px" height = "600px"  />
+    </a>
+    </center>
+         <img src = "images/LazuliN.png" width = "200px" height = "200px"/>
+      <img src = "images/856546431_1878127.gif" />
+
+
+        <img src = "images/31426.gif" /> 
+              <img src = "images/Sparkle_Nano.png" width = "200px" height = "200px" />
+  <center>
+  <img src = "images/04_06_07_felix1_thumb_465_459_int.jpg" width = "400px" height = "400px" />
+  <img src = "images/768449980_1462604.gif" />
+  <img src = "images/71MdVAYmtgL.jpg" width = "400px" height = "400px" />
+  
+  </center>
+  </center>
+  <center>
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/_Ypjz_XXKz8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/VaFo2TqoGrw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/C1nfzgllZQA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</center>
+<center>
+
+</center>
+<center>
+<a href = "https://soundcloud.com/mishkabeats" > <img src = "images/cooltext405098421760609.gif" alt = "click me for music!!!" /> </a>
+</center>
+<center>
+<a href = "https://www.youtube.com/watch?v=Yxg-AADx39w" > <img src = "images/kemonofriends.jpg" width = "400px" height = "400px" /> </a>
+
+<center>
+<img src = "images/lyrabon__stamp__by_kingbases_dc92hj2-fullview.png" />
+<img src = "images/d2xld76-b86adb8c-ff9d-4bcf-ac09-d31cccca6570.png " />
+<img src = "images/d2e9xpz-d3b04cde-5cbb-45fe-a023-f356db8d453a.gif " />
+<img src = "images/d2a4f66-aa8dc77f-7c17-4baa-b343-677ae361a818.gif " />
+<img src = "images/d460trd-de4c57d4-3cdb-4a03-9862-03ac099e0dda.png " />
+<img src = " " />
+</center>
+
+    <style type="text/css">* {cursor: url(https://cur.cursors-4u.net/toons/too-3/too290.cur), auto !important;} </style><a href="https://www.cursors-4u.com/cursor/2006/03/02/too290.html" target="_blank" title="The Simpsons - Scratchy The Cat"><img src="https://cur.cursors-4u.net/cursor.png" border="0" alt="The Simpsons - Scratchy The Cat" style="position:absolute; top: 0px; right: 0px;" /></a>
+  
+   <!--da hue rotation :) -->
+  <style>
+  
+    img {
+  filter: hue-rotate(90deg);
+  
+
+        -webkit-animation: changeColor 5s infinite;
+
+        -moz-animation:    changeColor 5s infinite;
+
+        -o-animation:      changeColor 5s infinite;
+
+        animation:         changeColor 5s infinite;
+
+    }
+
+    
+
+    @-webkit-keyframes changeColor {
+
+      0%   {
+
+        -webkit-filter: hue-rotate(0deg);
+
+        -moz-filter: hue-rotate(0deg);
+
+        -o-filter: hue-rotate(0deg);
+
+        filter: hue-rotate(0deg);
+
+      }
+
+    
+
+      100% {
+
+        -webkit-filter: hue-rotate(360deg);
+
+        -moz-filter: hue-rotate(360deg);
+
+        -o-filter: hue-rotate(360deg);
+
+        filter: hue-rotate(360deg);
+
+      }
+
+    }
+
+    @-moz-keyframes changeColor {
+
+      0%   {
+
+        -webkit-filter: hue-rotate(0deg);
+
+        -moz-filter: hue-rotate(0deg);
+
+        -o-filter: hue-rotate(0deg);
+
+        filter: hue-rotate(0deg);
+
+      }
+
+    
+
+      100% {
+
+        -webkit-filter: hue-rotate(360deg);
+
+        -moz-filter: hue-rotate(360deg);
+
+        -o-filter: hue-rotate(360deg);
+
+        filter: hue-rotate(360deg);
+
+      }
+
+    }
+
+    @-o-keyframes changeColor {
+
+      0%   {
+
+        -webkit-filter: hue-rotate(0deg);
+
+        -moz-filter: hue-rotate(0deg);
+
+        -o-filter: hue-rotate(0deg);
+
+        filter: hue-rotate(0deg);
+
+      }
+
+    
+
+      100% {
+
+        -webkit-filter: hue-rotate(360deg);
+
+        -moz-filter: hue-rotate(360deg);
+
+        -o-filter: hue-rotate(360deg);
+
+        filter: hue-rotate(360deg);
+
+      }
+
+    }
+
+    @keyframes changeColor {
+
+      0%   {
+
+        -webkit-filter: hue-rotate(0deg);
+
+        -moz-filter: hue-rotate(0deg);
+
+        -o-filter: hue-rotate(0deg);
+
+        filter: hue-rotate(0deg);
+
+      }
+
+    
+
+      100% {
+
+        -webkit-filter: hue-rotate(360deg);
+
+        -moz-filter: hue-rotate(360deg);
+
+        -o-filter: hue-rotate(360deg);
+
+        filter: hue-rotate(360deg);
+
+      }
+
+    }
             
-            // Ajouter une traînée au curseur
-            cursorTrail.push({ x: mouseX, y: mouseY, time: Date.now() });
-            if (cursorTrail.length > 20) cursorTrail.shift();
-        });
-        
-        function updateCursor() {
-            cursor.style.left = mouseX + 'px';
-            cursor.style.top = mouseY + 'px';
-            requestAnimationFrame(updateCursor);
-        }
-        updateCursor();
-        
-        // Génération de particules extrême
-        function createMegaParticle() {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            
-            const size = Math.random() * 20 + 10;
-            const colors = ['#ff00ff', '#00ffff', '#ffff00', '#ff0080', '#8000ff', '#00ff80', '#ff8000'];
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            const shapes = ['🔸', '🔹', '💠', '🔆', '⭐', '✨', '💫', '🌟', '⚡', '🔥'];
-            const shape = shapes[Math.floor(Math.random() * shapes.length)];
-            
-            particle.innerHTML = shape;
-            particle.style.fontSize = size + 'px';
-            particle.style.color = color;
-            particle.style.left = Math.random() * 120 - 10 + '%';
-            particle.style.textShadow = `0 0 ${size}px ${color}`;
-            particle.style.animationDelay = Math.random() * 3 + 's';
-            particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
-            particle.style.zIndex = Math.floor(Math.random() * 50);
-            
-            document.body.appendChild(particle);
-            
-            setTimeout(() => {
-                particle.remove();
-            }, 8000);
-        }
-        
-        // Créer des particules en continu (plus fréquent)
-        setInterval(createMegaParticle, 100);
-        
-        // Matrix rain extrême
-        function createMegaMatrixRain() {
-            const chars = '01アイウエオカキクケコサシスセソタチツテト★☆♦♠♣♥▲▼◆◇※∞Ω∑π∆∇∂∞';
-            const emojis = ['🧠', '🌈', '👁️', '🔮', '🎨', '🌀', '⚡', '💥'];
-            const allChars = chars + emojis.join('');
-            
-            const rain = document.createElement('div');
-            rain.className = 'matrix-rain';
-            rain.textContent = allChars[Math.floor(Math.random() * allChars.length)];
-            rain.style.left = Math.random() * 110 - 5 + '%';
-            rain.style.animationDelay = Math.random() * 2 + 's';
-            rain.style.animationDuration = (Math.random() * 2 + 3) + 's';
-            rain.style.fontSize = (Math.random() * 40 + 20) + 'px';
-            
-            document.body.appendChild(rain);
-            
-            setTimeout(() => {
-                rain.remove();
-            }, 6000);
-        }
-        
-        // Plus de matrix rain
-        setInterval(createMegaMatrixRain, 150);
-        
-        // Effet de click mega extrême
-        document.addEventListener('click', (e) => {
-            // Créer plusieurs effets simultanés
-            for (let i = 0; i < 5; i++) {
-                setTimeout(() => {
-                    const effect = document.createElement('div');
-                    effect.className = 'click-effect';
-                    effect.style.left = (e.clientX - 200 + Math.random() * 100) + 'px';
-                    effect.style.top = (e.clientY - 200 + Math.random() * 100) + 'px';
-                    effect.style.borderColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
-                    
-                    document.body.appendChild(effect);
-                    
-                    setTimeout(() => {
-                        effect.remove();
-                    }, 1000);
-                }, i * 100);
-            }
-            
-            // Secouer tout l'écran
-            document.body.style.animation = 'bodyShake 0.5s ease infinite';
-            setTimeout(() => {
-                document.body.style.animation = 'psychedelicBg 2s ease infinite, bodyShake 5s linear infinite';
-            }, 500);
-        });
-        
-        // Effet de tremblement ultra aléatoire du texte
-        const autismText = document.getElementById('autismText');
-        setInterval(() => {
-            if (Math.random() < 0.3) {
-                autismText.style.filter = `blur(${Math.random() * 5}px) contrast(${2 + Math.random() * 3})`;
-                autismText.style.transform = `translate(-50%, -50%) scale(${0.8
+
+
+  
+  
+  
+
+  </body>
+</html>
