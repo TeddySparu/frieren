@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AUTISM</title>
+    <title>🌊 AUTISM BEACH 🌊</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Creepster&family=Bungee&family=Comic+Neue:wght@700&display=swap');
         
@@ -60,10 +60,10 @@
             font-size: 50px;
             pointer-events: none;
             z-index: 99999;
-            mix-blend-mode: difference;
             animation: catBounce 0.5s ease infinite;
             filter: drop-shadow(0 0 20px #ff00ff);
             transform-origin: center;
+            user-select: none;
         }
         
         @keyframes catBounce {
@@ -499,42 +499,62 @@
         <div class="pulsing-element" style="top: 40%; left: 40%; animation-delay: -2.3s;">🦑</div>
         <div class="pulsing-element" style="top: 90%; left: 50%; animation-delay: -1.2s;">🐢</div>
         
-        <!-- Textes popup délirants -->
-        <div class="crazy-popup-text" style="top: 15%; left: 20%; animation-delay: 2s;">FRIEREN</div>
-        <div class="crazy-popup-text" style="top: 75%; right: 15%; animation-delay: 5s;">JAGER</div>
-        <div class="crazy-popup-text" style="top: 35%; left: 10%; animation-delay: 8s;">ALCOOL</div>
-        <div class="crazy-popup-text" style="top: 85%; left: 70%; animation-delay: 11s;">DROGUE</div>
-        <div class="crazy-popup-text" style="top: 25%; right: 30%; animation-delay: 14s;">GAMBLING</div>
-        <div class="crazy-popup-text" style="top: 65%; right: 10%; animation-delay: 17s;">ROBLOX</div>
+        <!-- Effets supplémentaires -->
+        <div class="screen-glitch"></div>
+        
+        <!-- Spirales hypnotiques -->
+        <div class="hypno-spiral" style="top: 20%; left: 10%;"></div>
+        <div class="hypno-spiral" style="top: 60%; right: 15%; animation-delay: -2s;"></div>
+        <div class="hypno-spiral" style="top: 40%; left: 70%; animation-delay: -4s;"></div>
+        <div class="hypno-spiral" style="top: 80%; left: 40%; animation-delay: -6s;"></div>
+        
+        <!-- Laser beams -->
+        <div class="laser-beam" style="top: 25%; animation-delay: 0s;"></div>
+        <div class="laser-beam" style="top: 55%; animation-delay: -1s;"></div>
+        <div class="laser-beam" style="top: 75%; animation-delay: -2s;"></div>
+        
+        <!-- Étoiles filantes -->
+        <div class="shooting-star" style="top: 10%; animation-delay: 0s;"></div>
+        <div class="shooting-star" style="top: 30%; animation-delay: -1s;"></div>
+        <div class="shooting-star" style="top: 50%; animation-delay: -2s;"></div>
+        <div class="shooting-star" style="top: 70%; animation-delay: -3s;"></div>
+        <div class="crazy-popup-text" style="top: 15%; left: 20%; animation-delay: 2s;">TRIP</div>
+        <div class="crazy-popup-text" style="top: 75%; right: 15%; animation-delay: 5s;">VIBES</div>
+        <div class="crazy-popup-text" style="top: 35%; left: 10%; animation-delay: 8s;">CHAOS</div>
+        <div class="crazy-popup-text" style="top: 85%; left: 70%; animation-delay: 11s;">DREAM</div>
+        <div class="crazy-popup-text" style="top: 25%; right: 30%; animation-delay: 14s;">WILD</div>
+        <div class="crazy-popup-text" style="top: 65%; right: 10%; animation-delay: 17s;">MAGIC</div>
     </div>
 
     <script>
-        // Curseur chaton kawaii
-        const catCursor = document.getElementById('catCursor');
+        // Variables globales
         let mouseX = 0, mouseY = 0;
-        let catEmojis = ['😸', '😺', '😻', '🐱', '😹', '😽', '🙀', '😿', '😾','🍆'];
+        let catEmojis = ['😸', '😺', '😻', '🐱', '😹', '😽', '🙀', '😿', '😾', '🐈', '🐯', '🦁'];
         let currentCat = 0;
         
+        // Curseur chaton kawaii
+        const catCursor = document.getElementById('catCursor');
+        
+        // Suivre la souris
         document.addEventListener('mousemove', (e) => {
             mouseX = e.clientX;
             mouseY = e.clientY;
             
-            // Créer traînée psychédélique
-            createMouseTrail(mouseX, mouseY);
-        });
-        
-        function updateCursor() {
+            // Mettre à jour position du chat
             catCursor.style.left = (mouseX - 30) + 'px';
             catCursor.style.top = (mouseY - 30) + 'px';
-            requestAnimationFrame(updateCursor);
-        }
-        updateCursor();
+            
+            // Créer traînée psychédélique
+            if (Math.random() < 0.3) {
+                createMouseTrail(mouseX, mouseY);
+            }
+        });
         
         // Changer le chaton régulièrement
         setInterval(() => {
             currentCat = (currentCat + 1) % catEmojis.length;
             catCursor.textContent = catEmojis[currentCat];
-        }, 1000);
+        }, 1500);
         
         // Traînée de souris ultra psyché
         function createMouseTrail(x, y) {
@@ -555,8 +575,60 @@
             document.body.appendChild(trail);
             
             setTimeout(() => {
-                trail.remove();
+                if (trail.parentNode) {
+                    trail.remove();
+                }
             }, 2000);
+        }
+        
+        // Génération de confettis
+        function createConfetti() {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            
+            const colors = ['#ff00ff', '#00ffff', '#ffff00', '#ff0080', '#00ff80', '#ff4000'];
+            const shapes = ['▲', '●', '■', '◆', '★', '♦', '♠', '♣', '♥'];
+            
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
+            confetti.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+            confetti.style.fontSize = (Math.random() * 20 + 15) + 'px';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            confetti.style.animationDuration = (Math.random() * 2 + 3) + 's';
+            confetti.style.textShadow = `0 0 20px ${confetti.style.color}`;
+            
+            document.body.appendChild(confetti);
+            
+            setTimeout(() => {
+                if (confetti.parentNode) {
+                    confetti.remove();
+                }
+            }, 5000);
+        }
+        
+        // Génération de bulles magiques
+        function createMagicBubble() {
+            const bubble = document.createElement('div');
+            bubble.className = 'magic-bubble';
+            
+            const size = Math.random() * 80 + 40;
+            const color = `hsl(${Math.random() * 360}, 80%, 60%)`;
+            
+            bubble.style.width = size + 'px';
+            bubble.style.height = size + 'px';
+            bubble.style.left = Math.random() * 100 + '%';
+            bubble.style.borderColor = color;
+            bubble.style.boxShadow = `0 0 ${size/2}px ${color}`;
+            bubble.style.animationDelay = Math.random() * 3 + 's';
+            bubble.style.animationDuration = (Math.random() * 3 + 5) + 's';
+            
+            document.body.appendChild(bubble);
+            
+            setTimeout(() => {
+                if (bubble.parentNode) {
+                    bubble.remove();
+                }
+            }, 8000);
         }
         
         // Générer des particules folles
@@ -567,7 +639,7 @@
             const size = Math.random() * 40 + 20;
             const colors = ['#ff00ff', '#00ffff', '#ffff00', '#ff0080', '#8000ff', '#00ff80', '#ff4000'];
             const color = colors[Math.floor(Math.random() * colors.length)];
-            const emojis = ['⭐', '✨', '💫', '🌟', '⚡', '🔥', '💎', '🌀', '💥', '🎆', '🎇','🍆'];
+            const emojis = ['⭐', '✨', '💫', '🌟', '⚡', '🔥', '💎', '🌀', '💥', '🎆', '🎇', '🔮', '👁️', '🧠'];
             const emoji = emojis[Math.floor(Math.random() * emojis.length)];
             
             particle.innerHTML = emoji;
@@ -581,12 +653,11 @@
             document.body.appendChild(particle);
             
             setTimeout(() => {
-                particle.remove();
+                if (particle.parentNode) {
+                    particle.remove();
+                }
             }, 10000);
         }
-        
-        // Générer particules en continu
-        setInterval(createCrazyParticle, 200);
         
         // Matrix rain hardcore
         function createMatrixHardcore() {
@@ -606,58 +677,125 @@
             document.body.appendChild(rain);
             
             setTimeout(() => {
-                rain.remove();
+                if (rain.parentNode) {
+                    rain.remove();
+                }
             }, 6000);
         }
         
-        setInterval(createMatrixHardcore, 100);
-        
-        // Explosion de clic mega délirant
+        // Explosion de clic MEGA délirant
         document.addEventListener('click', (e) => {
             // Changer le chaton au clic
             catCursor.textContent = catEmojis[Math.floor(Math.random() * catEmojis.length)];
+            catCursor.style.transform = 'scale(2) rotate(360deg)';
+            setTimeout(() => {
+                catCursor.style.transform = 'scale(1) rotate(0deg)';
+            }, 300);
             
             // Créer explosion de particules
-            const explosion = document.createElement('div');
-            explosion.className = 'click-explosion';
-            explosion.style.left = e.clientX + 'px';
-            explosion.style.top = e.clientY + 'px';
-            
-            for (let i = 0; i < 30; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'explosion-particle';
-                
-                const angle = (360 / 30) * i;
-                const distance = Math.random() * 200 + 50;
-                const size = Math.random() * 20 + 10;
-                const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
-                
-                particle.style.background = `radial-gradient(circle, ${color}, transparent)`;
-                particle.style.width = size + 'px';
-                particle.style.height = size + 'px';
-                particle.style.left = '0px';
-                particle.style.top = '0px';
-                particle.style.boxShadow = `0 0 ${size*2}px ${color}`;
-                
-                const x = Math.cos(angle * Math.PI / 180) * distance;
-                const y = Math.sin(angle * Math.PI / 180) * distance;
-                particle.style.setProperty('--x', x + 'px');
-                particle.style.setProperty('--y', y + 'px');
-                particle.style.animation = `explode 1.5s ease-out forwards`;
-                particle.style.transform = `translate(var(--x, 0), var(--y, 0))`;
-                
-                explosion.appendChild(particle);
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const explosion = document.createElement('div');
+                    explosion.className = 'explosion-particle';
+                    
+                    const size = Math.random() * 30 + 15;
+                    const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                    const angle = Math.random() * 360;
+                    const distance = Math.random() * 300 + 100;
+                    
+                    explosion.style.width = size + 'px';
+                    explosion.style.height = size + 'px';
+                    explosion.style.background = `radial-gradient(circle, ${color}, transparent)`;
+                    explosion.style.position = 'fixed';
+                    explosion.style.left = e.clientX + 'px';
+                    explosion.style.top = e.clientY + 'px';
+                    explosion.style.pointerEvents = 'none';
+                    explosion.style.zIndex = '9997';
+                    explosion.style.borderRadius = '50%';
+                    explosion.style.boxShadow = `0 0 ${size*2}px ${color}`;
+                    
+                    const endX = e.clientX + Math.cos(angle * Math.PI / 180) * distance;
+                    const endY = e.clientY + Math.sin(angle * Math.PI / 180) * distance;
+                    
+                    explosion.animate([
+                        { 
+                            transform: 'scale(0) rotate(0deg)',
+                            opacity: 1,
+                            left: e.clientX + 'px',
+                            top: e.clientY + 'px'
+                        },
+                        { 
+                            transform: 'scale(2) rotate(720deg)',
+                            opacity: 0,
+                            left: endX + 'px',
+                            top: endY + 'px'
+                        }
+                    ], {
+                        duration: 1500,
+                        easing: 'ease-out'
+                    }).onfinish = () => {
+                        if (explosion.parentNode) {
+                            explosion.remove();
+                        }
+                    };
+                    
+                    document.body.appendChild(explosion);
+                }, i * 20);
             }
             
-            document.body.appendChild(explosion);
-            
-            setTimeout(() => {
-                explosion.remove();
-            }, 1500);
+            // Générer des confettis au clic
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    createConfetti();
+                }, i * 50);
+            }
             
             // Secouer l'écran
             document.body.style.animation = 'none';
-            document.body.offsetHeight; // Force reflow
-            document.body.style.animation = 'megaBgTrip 0.2s ease infinite';
+            document.body.offsetHeight;
+            document.body.style.animation = 'megaBgTrip 0.1s ease infinite';
             setTimeout(() => {
-                document.body.style
+                document.body.style.animation = 'megaBgTrip 3s ease infinite';
+            }, 200);
+        });
+        
+        // Générateurs en continu
+        setInterval(createCrazyParticle, 300);
+        setInterval(createMatrixHardcore, 150);
+        setInterval(createConfetti, 800);
+        setInterval(createMagicBubble, 1200);
+        
+        // Effets aléatoires
+        setInterval(() => {
+            // Changer la couleur du chaton aléatoirement
+            if (Math.random() < 0.3) {
+                catCursor.style.filter = `hue-rotate(${Math.random() * 360}deg) saturate(3)`;
+                setTimeout(() => {
+                    catCursor.style.filter = 'drop-shadow(0 0 20px #ff00ff)';
+                }, 500);
+            }
+        }, 1000);
+        
+        // Message de bienvenue ultra délirant
+        console.log('🌊🌈✨ BIENVENUE DANS L\'AUTISM BEACH PSYCHÉDÉLIQUE ULTIME ! ✨🌈🌊');
+        console.log('🐱 Votre curseur chaton vous accompagne dans ce voyage sensoriel ! 🐱');
+        console.log('💥 Cliquez partout pour des explosions de folie ! 💥');
+        
+        // Animation du titre de la page
+        let titleAnimation = 0;
+        const titles = [
+            '🌊 AUTISM BEACH 🌊',
+            '🌈 PLAGE PSYCHÉ 🌈', 
+            '🏖️ TRIP SENSORIEL 🏖️',
+            '🎨 NEURODIVERSITÉ 🎨',
+            '✨ SPECTRE INFINI ✨',
+            '🐱 CAT CURSOR MODE 🐱',
+            '💥 CLICK EXPLOSION 💥',
+            '🌀 HYPNO SPIRALS 🌀'
+        ];
+        
+        setInterval(() => {
+            document.title = titles[titleAnimation % titles.length];
+            titleAnimation++;
+        }, 2000);
+    </script>
