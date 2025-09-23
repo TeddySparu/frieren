@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌊 AUTISM BEACH 🌊</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            overflow-x: hidden;
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(45deg, #ff00ff, #00ffff, #ffff00, #ff0080);
+            background-size: 400% 400%;
+            animation: psychedelicBg 3s ease infinite;
+            cursor: none;
+        }
+        
+        @keyframes psychedelicBg {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .container {
+            position: relative;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Curseur custom */
+        .custom-cursor {
+            position: fixed;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle, #ff00ff, #00ffff);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            animation: cursorPulse 0.5s ease infinite;
+        }
+        
+        @keyframes cursorPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+        }
+        
+        /* Vagues animées */
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 200px;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.3), transparent);
+            animation: wave-move 4s ease-in-out infinite;
+            transform-origin: center bottom;
+        }
+        
+        .wave:nth-child(2) {
+            animation-delay: -1s;
+            background: linear-gradient(90deg, transparent, rgba(255, 0, 255, 0.3), transparent);
+        }
+        
+        .wave:nth-child(3) {
+            animation-delay: -2s;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 0, 0.3), transparent);
+        }
+        
+        @keyframes wave-move {
+            0%, 100% { transform: translateX(-50%) rotate(0deg) scaleY(1); }
+            25% { transform: translateX(-40%) rotate(5deg) scaleY(1.2); }
+            50% { transform: translateX(-60%) rotate(-3deg) scaleY(0.8); }
+            75% { transform: translateX(-45%) rotate(7deg) scaleY(1.4); }
+        }
+        
+        /* Texte principal AUTISM */
+        .autism-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(60px, 15vw, 200px);
+            font-weight: 900;
+            color: transparent;
+            background: linear-gradient(45deg, #ff0080, #8000ff, #0080ff, #00ff80, #ff8000);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: textRainbow 2s ease infinite, textFloat 4s ease-in-out infinite;
+            text-shadow: 0 0 50px rgba(255, 0, 255, 0.8);
+            z-index: 100;
+            letter-spacing: 10px;
+        }
+        
+        @keyframes textRainbow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes textFloat {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+            25% { transform: translate(-50%, -50%) rotate(2deg) scale(1.1); }
+            50% { transform: translate(-50%, -50%) rotate(-1deg) scale(0.95); }
+            75% { transform: translate(-50%, -50%) rotate(3deg) scale(1.05); }
+        }
+        
+        /* Particules flottantes */
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFloat 8s linear infinite;
+        }
+        
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        /* Soleil psychédélique */
+        .psychedelic-sun {
+            position: absolute;
+            top: 10%;
+            right: 10%;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, #ffff00, #ff8000, #ff0080);
+            border-radius: 50%;
+            animation: sunSpin 6s linear infinite, sunPulse 3s ease-in-out infinite;
+            box-shadow: 0 0 100px rgba(255, 255, 0, 0.8);
+        }
+        
+        .psychedelic-sun::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            background: conic-gradient(from 0deg, transparent, #ffff00, transparent, #ff0080, transparent);
+            border-radius: 50%;
+            animation: sunRays 4s linear infinite reverse;
+            z-index: -1;
+        }
+        
+        @keyframes sunSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes sunPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        @keyframes sunRays {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Palmiers délirants */
+        .palm-tree {
+            position: absolute;
+            bottom: 20%;
+            font-size: 80px;
+            animation: palmSway 5s ease-in-out infinite;
+            filter: hue-rotate(0deg);
+            animation: palmSway 5s ease-in-out infinite, colorShift 3s linear infinite;
+        }
+        
+        .palm-tree:nth-child(5) { left: 10%; animation-delay: 0s; }
+        .palm-tree:nth-child(6) { left: 80%; animation-delay: -2s; }
+        
+        @keyframes palmSway {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(5deg); }
+            75% { transform: rotate(-5deg); }
+        }
+        
+        @keyframes colorShift {
+            0% { filter: hue-rotate(0deg) saturate(2); }
+            100% { filter: hue-rotate(360deg) saturate(2); }
+        }
+        
+        /* Effet de distorsion sur hover */
+        .autism-text:hover {
+            animation: textDistort 0.5s ease infinite;
+            filter: blur(2px);
+        }
+        
+        @keyframes textDistort {
+            0%, 100% { transform: translate(-50%, -50%) skew(0deg, 0deg); }
+            25% { transform: translate(-50%, -50%) skew(5deg, 2deg); }
+            50% { transform: translate(-50%, -50%) skew(-3deg, -1deg); }
+            75% { transform: translate(-50%, -50%) skew(2deg, -3deg); }
+        }
+        
+        /* Nuages trippy */
+        .cloud {
+            position: absolute;
+            color: white;
+            font-size: 40px;
+            opacity: 0.7;
+            animation: cloudFloat 15s linear infinite, cloudColor 4s ease infinite;
+        }
+        
+        .cloud:nth-child(7) { top: 20%; animation-delay: 0s; }
+        .cloud:nth-child(8) { top: 15%; animation-delay: -5s; }
+        .cloud:nth-child(9) { top: 25%; animation-delay: -10s; }
+        
+        @keyframes cloudFloat {
+            0% { left: -200px; }
+            100% { left: 100vw; }
+        }
+        
+        @keyframes cloudColor {
+            0%, 100% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(180deg); }
+        }
+        
+        /* Effet matrix */
+        .matrix-rain {
+            position: absolute;
+            top: 0;
+            font-family: monospace;
+            color: #00ff00;
+            font-size: 20px;
+            animation: matrixFall 5s linear infinite;
+            opacity: 0.3;
+        }
+        
+        @keyframes matrixFall {
+            0% { transform: translateY(-100px); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+        
+        /* Effet click */
+        .click-effect {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border: 3px solid #ff00ff;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: clickExpand 0.6s ease-out forwards;
+        }
+        
+        @keyframes clickExpand {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 1;
+            }
+            100% {
+                width: 200px;
+                height: 200px;
+                opacity: 0;
+            }
+        }
+        
+        /* Messages cachés */
+        .hidden-message {
+            position: absolute;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.1);
+            animation: messageReveal 10s ease infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes messageReveal {
+            0%, 90% { opacity: 0; }
+            95%, 100% { opacity: 0.8; }
+        }
+    </style>
+</head>
+<body>
+    <div class="custom-cursor"></div>
+    
+    <div class="container">
+        <!-- Vagues animées -->
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+        
+        <!-- Texte principal -->
+        <div class="autism-text" id="autismText">AUTISM</div>
+        
+        <!-- Soleil psychédélique -->
+        <div class="psychedelic-sun"></div>
+        
+        <!-- Palmiers -->
+        <div class="palm-tree">🌴</div>
+        <div class="palm-tree">🌴</div>
+        
+        <!-- Nuages -->
+        <div class="cloud">☁️</div>
+        <div class="cloud">☁️</div>
+        <div class="cloud">☁️</div>
+        
+        <!-- Messages cachés -->
+        <div class="hidden-message" style="top: 10%; left: 5%;">La neurodiversité est belle</div>
+        <div class="hidden-message" style="top: 80%; right: 10%;">Chaque cerveau est unique</div>
+        <div class="hidden-message" style="top: 60%; left: 20%;">Acceptation & compréhension</div>
+    </div>
+
+    <script>
+        // Curseur custom
+        const cursor = document.querySelector('.custom-cursor');
+        let mouseX = 0, mouseY = 0;
+        
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+        
+        function updateCursor() {
+            cursor.style.left = mouseX + 'px';
+            cursor.style.top = mouseY + 'px';
+            requestAnimationFrame(updateCursor);
+        }
+        updateCursor();
+        
+        // Génération de particules
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            
+            const size = Math.random() * 10 + 5;
+            const colors = ['#ff00ff', '#00ffff', '#ffff00', '#ff0080', '#8000ff'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.background = color;
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.boxShadow = `0 0 ${size*2}px ${color}`;
+            particle.style.animationDelay = Math.random() * 2 + 's';
+            particle.style.animationDuration = (Math.random() * 6 + 4) + 's';
+            
+            document.body.appendChild(particle);
+            
+            setTimeout(() => {
+                particle.remove();
+            }, 8000);
+        }
+        
+        // Créer des particules en continu
+        setInterval(createParticle, 200);
+        
+        // Effet matrix rain
+        function createMatrixRain() {
+            const chars = '01アイウエオカキクケコサシスセソタチツテト';
+            const rain = document.createElement('div');
+            rain.className = 'matrix-rain';
+            rain.textContent = chars[Math.floor(Math.random() * chars.length)];
+            rain.style.left = Math.random() * 100 + '%';
+            rain.style.animationDelay = Math.random() * 2 + 's';
+            rain.style.animationDuration = (Math.random() * 3 + 3) + 's';
+            
+            document.body.appendChild(rain);
+            
+            setTimeout(() => {
+                rain.remove();
+            }, 6000);
+        }
+        
+        setInterval(createMatrixRain, 300);
+        
+        // Effet de click
+        document.addEventListener('click', (e) => {
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            effect.style.left = (e.clientX - 50) + 'px';
+            effect.style.top = (e.clientY - 50) + 'px';
+            
+            document.body.appendChild(effect);
+            
+            setTimeout(() => {
+                effect.remove();
+            }, 600);
+        });
+        
+        // Effet de tremblement aléatoire du texte
+        const autismText = document.getElementById('autismText');
+        setInterval(() => {
+            if (Math.random() < 0.1) {
+                autismText.style.filter = 'blur(' + (Math.random() * 3) + 'px)';
+                setTimeout(() => {
+                    autismText.style.filter = 'none';
+                }, 100);
+            }
+        }, 500);
+        
+        // Changement de couleur de fond aléatoire
+        setInterval(() => {
+            document.body.style.filter = `hue-rotate(${Math.random() * 360}deg) saturate(${1 + Math.random()}`;
+            setTimeout(() => {
+                document.body.style.filter = 'none';
+            }, 200);
+        }, 3000);
+        
+        // Sons psychédéliques (commenté car pas d'audio dans les artefacts)
+        /*
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playPsychedelicSound() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = Math.random() * 800 + 200;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 1);
+        }
+        
+        document.addEventListener('click', playPsychedelicSound);
+        */
+        
+        // Message de bienvenue délirant
+        setTimeout(() => {
+            console.log('🌊🌈 BIENVENUE DANS L\'AUTISM BEACH PSYCHÉDÉLIQUE ! 🌈🌊');
+            console.log('Préparez-vous pour un voyage sensoriel unique...');
+        }, 1000);
+        
+        // Animation du titre de la page
+        let titleAnimation = 0;
+        setInterval(() => {
+            const titles = [
+                '🌊 AUTISM BEACH 🌊',
+                '🌈 PLAGE PSYCHÉ 🌈', 
+                '🏖️ TRIP SENSORIEL 🏖️',
+                '🎨 NEURODIVERSITÉ 🎨',
+                '✨ SPECTRE INFINI ✨'
+            ];
+            document.title = titles[titleAnimation % titles.length];
+            titleAnimation++;
+        }, 2000);
+    </script>
+</body>
+</html>
