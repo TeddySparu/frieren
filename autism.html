@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AUTISM</title>
+    <title>🌊 AUTISM BEACH 🌊</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Creepster&family=Bungee&family=Comic+Neue:wght@700&display=swap');
         
@@ -51,9 +51,7 @@
                 filter: hue-rotate(360deg) saturate(2);
             }
         }
-        <audio autoplay loop>
-  <source src="musiquedeouff.mp3" type="audio/mpeg">
-</audio>
+        
         /* Curseur chaton kawaii */
         .cat-cursor {
             position: fixed;
@@ -456,6 +454,12 @@
     </style>
 </head>
 <body>
+    <!-- Audio en arrière-plan -->
+    <audio id="backgroundMusic" loop preload="auto" style="display: none;">
+        <source src="musiquedeouff.mp3" type="audio/mpeg">
+        Votre navigateur ne supporte pas l'audio.
+    </audio>
+    
     <div class="cat-cursor" id="catCursor">😸</div>
     <div class="hallucination-overlay"></div>
     
@@ -520,12 +524,12 @@
         <div class="shooting-star" style="top: 30%; animation-delay: -1s;"></div>
         <div class="shooting-star" style="top: 50%; animation-delay: -2s;"></div>
         <div class="shooting-star" style="top: 70%; animation-delay: -3s;"></div>
-        <div class="crazy-popup-text" style="top: 15%; left: 20%; animation-delay: 2s;">FRIEREN</div>
-        <div class="crazy-popup-text" style="top: 75%; right: 15%; animation-delay: 5s;">JAGER</div>
-        <div class="crazy-popup-text" style="top: 35%; left: 10%; animation-delay: 8s;">GAMBLING</div>
-        <div class="crazy-popup-text" style="top: 85%; left: 70%; animation-delay: 11s;">ROBLOX</div>
-        <div class="crazy-popup-text" style="top: 25%; right: 30%; animation-delay: 14s;">BRAINROT</div>
-        <div class="crazy-popup-text" style="top: 65%; right: 10%; animation-delay: 17s;">DRUGS</div>
+        <div class="crazy-popup-text" style="top: 15%; left: 20%; animation-delay: 2s;">TRIP</div>
+        <div class="crazy-popup-text" style="top: 75%; right: 15%; animation-delay: 5s;">VIBES</div>
+        <div class="crazy-popup-text" style="top: 35%; left: 10%; animation-delay: 8s;">CHAOS</div>
+        <div class="crazy-popup-text" style="top: 85%; left: 70%; animation-delay: 11s;">DREAM</div>
+        <div class="crazy-popup-text" style="top: 25%; right: 30%; animation-delay: 14s;">WILD</div>
+        <div class="crazy-popup-text" style="top: 65%; right: 10%; animation-delay: 17s;">MAGIC</div>
     </div>
 
     <script>
@@ -533,6 +537,27 @@
         let mouseX = 0, mouseY = 0;
         let catEmojis = ['😸', '😺', '😻', '🐱', '😹', '😽', '🙀', '😿', '😾', '🐈', '🐯', '🦁'];
         let currentCat = 0;
+        let audioStarted = false;
+        
+        // Audio background
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        
+        function startAudio() {
+            if (!audioStarted && backgroundMusic) {
+                backgroundMusic.volume = 0.9; // Volume à 30%
+                backgroundMusic.play().then(() => {
+                    console.log('🎵 Musique démarrée !');
+                    audioStarted = true;
+                }).catch(e => {
+                    console.log('🎵 Audio bloqué par le navigateur, interaction nécessaire');
+                });
+            }
+        }
+        
+        // Démarrer l'audio dès la première interaction
+        document.addEventListener('click', startAudio, { once: false });
+        document.addEventListener('keydown', startAudio, { once: false });
+        document.addEventListener('mousemove', startAudio, { once: true });
         
         // Curseur chaton kawaii
         const catCursor = document.getElementById('catCursor');
