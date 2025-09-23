@@ -1,227 +1,663 @@
-
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="fr">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>radioactive girl zone</title>
-    <!-- The style.css file allows you to change the look of your web pages.
-         If you include the next line in all your web pages, they will all share the same look.
-         This makes it easier to make new pages for your site. -->
-    <link href="/style.css" rel="stylesheet" type="text/css" media="all">
-  </head>
- <body background="images/BtBg.gif" bgcolor="#FFFFFF" link="#0000FF" vlink="#FF0000" text="#000000">
-    <h1>WELCOME TO MISHKA DOT COM.COM </h1>
-  
+    <title>🌊 AUTISM BEACH 🌊</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Creepster&family=Bungee&family=Comic+Neue:wght@700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            overflow: hidden;
+            font-family: 'Comic Neue', cursive;
+            background: 
+                radial-gradient(circle at 20% 30%, #ff00ff 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, #00ffff 0%, transparent 50%),
+                radial-gradient(circle at 60% 20%, #ffff00 0%, transparent 50%),
+                linear-gradient(45deg, #ff0080, #8000ff, #0080ff, #00ff80, #ff8000, #ff4000);
+            background-size: 400% 400%, 300% 300%, 500% 500%, 200% 200%;
+            animation: megaBgTrip 3s ease infinite;
+            cursor: none;
+            position: relative;
+            height: 100vh;
+            width: 100vw;
+        }
+        
+        @keyframes megaBgTrip {
+            0% { 
+                background-position: 0% 0%, 0% 0%, 0% 0%, 0% 50%; 
+                filter: hue-rotate(0deg) saturate(2);
+            }
+            25% { 
+                background-position: 100% 0%, 50% 100%, 100% 0%, 100% 0%; 
+                filter: hue-rotate(90deg) saturate(3);
+            }
+            50% { 
+                background-position: 100% 100%, 100% 0%, 0% 100%, 100% 100%; 
+                filter: hue-rotate(180deg) saturate(4);
+            }
+            75% { 
+                background-position: 0% 100%, 50% 50%, 100% 100%, 0% 100%; 
+                filter: hue-rotate(270deg) saturate(2.5);
+            }
+            100% { 
+                background-position: 0% 0%, 0% 0%, 0% 0%, 0% 50%; 
+                filter: hue-rotate(360deg) saturate(2);
+            }
+        }
+        
+        /* Curseur chaton kawaii */
+        .cat-cursor {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            font-size: 50px;
+            pointer-events: none;
+            z-index: 99999;
+            mix-blend-mode: difference;
+            animation: catBounce 0.5s ease infinite;
+            filter: drop-shadow(0 0 20px #ff00ff);
+            transform-origin: center;
+        }
+        
+        @keyframes catBounce {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.3) rotate(10deg); }
+            50% { transform: scale(0.8) rotate(-5deg); }
+            75% { transform: scale(1.1) rotate(15deg); }
+        }
+        
+        /* Traînée de la souris ultra psyché */
+        .mouse-trail {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            mix-blend-mode: screen;
+            animation: trailFade 2s ease-out forwards;
+        }
+        
+        @keyframes trailFade {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+                filter: blur(0px);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.2);
+                filter: blur(10px);
+            }
+        }
+        
+        /* AUTISM texte ultra mega */
+        .autism-text {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(100px, 25vw, 400px);
+            font-weight: 900;
+            font-family: 'Bungee', cursive;
+            color: transparent;
+            background: linear-gradient(45deg, 
+                #ff0080, #ff4000, #ffff00, #00ff80, 
+                #0080ff, #4000ff, #8000ff, #ff0080
+            );
+            background-size: 600% 600%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: 
+                autismRainbow 1.5s linear infinite,
+                autismFloat 4s ease-in-out infinite,
+                autismGlitch 3s ease infinite;
+            text-shadow: 
+                0 0 50px rgba(255, 0, 255, 1),
+                0 0 100px rgba(0, 255, 255, 0.8),
+                0 0 150px rgba(255, 255, 0, 0.6),
+                0 0 200px rgba(255, 0, 128, 0.4);
+            z-index: 1000;
+            letter-spacing: 20px;
+            filter: 
+                drop-shadow(20px 20px 40px rgba(255, 0, 255, 0.8))
+                drop-shadow(-10px -10px 20px rgba(0, 255, 255, 0.6));
+        }
+        
+        @keyframes autismRainbow {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 600% 600%; }
+        }
+        
+        @keyframes autismFloat {
+            0%, 100% { 
+                transform: translate(-50%, -50%) rotate(0deg) scale(1); 
+            }
+            25% { 
+                transform: translate(-50%, -50%) rotate(3deg) scale(1.1); 
+            }
+            50% { 
+                transform: translate(-50%, -50%) rotate(-2deg) scale(0.95); 
+            }
+            75% { 
+                transform: translate(-50%, -50%) rotate(5deg) scale(1.05); 
+            }
+        }
+        
+        @keyframes autismGlitch {
+            0%, 95% { 
+                filter: 
+                    drop-shadow(20px 20px 40px rgba(255, 0, 255, 0.8))
+                    drop-shadow(-10px -10px 20px rgba(0, 255, 255, 0.6));
+            }
+            96% { 
+                filter: 
+                    drop-shadow(-20px 10px 40px rgba(0, 255, 0, 0.8))
+                    drop-shadow(15px -15px 20px rgba(255, 0, 0, 0.6));
+            }
+            97% { 
+                filter: 
+                    drop-shadow(25px -20px 40px rgba(0, 0, 255, 0.8))
+                    drop-shadow(-20px 25px 20px rgba(255, 255, 0, 0.6));
+            }
+            98%, 100% { 
+                filter: 
+                    drop-shadow(20px 20px 40px rgba(255, 0, 255, 0.8))
+                    drop-shadow(-10px -10px 20px rgba(0, 255, 255, 0.6));
+            }
+        }
+        
+        /* Éléments qui tournent partout */
+        .spinning-element {
+            position: absolute;
+            font-size: clamp(40px, 8vw, 120px);
+            animation: megaSpin 6s linear infinite;
+            mix-blend-mode: difference;
+            filter: saturate(4) contrast(2);
+            z-index: 50;
+        }
+        
+        @keyframes megaSpin {
+            0% { 
+                transform: rotate(0deg) scale(1); 
+                filter: saturate(4) contrast(2) hue-rotate(0deg);
+            }
+            25% { 
+                transform: rotate(90deg) scale(1.5); 
+                filter: saturate(6) contrast(3) hue-rotate(90deg);
+            }
+            50% { 
+                transform: rotate(180deg) scale(0.8); 
+                filter: saturate(2) contrast(4) hue-rotate(180deg);
+            }
+            75% { 
+                transform: rotate(270deg) scale(2); 
+                filter: saturate(8) contrast(1.5) hue-rotate(270deg);
+            }
+            100% { 
+                transform: rotate(360deg) scale(1); 
+                filter: saturate(4) contrast(2) hue-rotate(360deg);
+            }
+        }
+        
+        /* Éléments qui grossissent */
+        .growing-element {
+            position: absolute;
+            font-size: 60px;
+            animation: megaGrow 4s ease-in-out infinite;
+            mix-blend-mode: screen;
+            filter: brightness(2) saturate(3);
+            z-index: 30;
+        }
+        
+        @keyframes megaGrow {
+            0%, 100% { 
+                transform: scale(1) rotate(0deg); 
+                filter: brightness(2) saturate(3) hue-rotate(0deg);
+                opacity: 0.8;
+            }
+            50% { 
+                transform: scale(3) rotate(180deg); 
+                filter: brightness(4) saturate(6) hue-rotate(180deg);
+                opacity: 1;
+            }
+        }
+        
+        /* Éléments qui pulsent */
+        .pulsing-element {
+            position: absolute;
+            font-size: 80px;
+            animation: megaPulse 2s ease infinite;
+            mix-blend-mode: overlay;
+            filter: blur(2px) saturate(5);
+            z-index: 40;
+        }
+        
+        @keyframes megaPulse {
+            0%, 100% { 
+                transform: scale(1); 
+                filter: blur(2px) saturate(5) hue-rotate(0deg);
+            }
+            50% { 
+                transform: scale(2.5); 
+                filter: blur(0px) saturate(8) hue-rotate(180deg);
+            }
+        }
+        
+        /* Particules folles */
+        .crazy-particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleChaos 8s linear infinite;
+            mix-blend-mode: color-dodge;
+            z-index: 20;
+        }
+        
+        @keyframes particleChaos {
+            0% {
+                transform: translateY(110vh) rotate(0deg) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+                transform: translateY(90vh) rotate(72deg) scale(1);
+            }
+            25% {
+                transform: translateY(70vh) rotate(144deg) scale(2);
+            }
+            50% {
+                transform: translateY(40vh) rotate(216deg) scale(0.5);
+            }
+            75% {
+                transform: translateY(20vh) rotate(288deg) scale(3);
+            }
+            90% {
+                opacity: 1;
+                transform: translateY(5vh) rotate(360deg) scale(1);
+            }
+            100% {
+                transform: translateY(-10vh) rotate(432deg) scale(0);
+                opacity: 0;
+            }
+        }
+        
+        /* Vagues de l'enfer */
+        .hell-wave {
+            position: absolute;
+            bottom: -100px;
+            left: -100%;
+            width: 300%;
+            height: 400px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 0, 255, 0.8), 
+                rgba(0, 255, 255, 0.9),
+                rgba(255, 255, 0, 0.7),
+                rgba(255, 0, 128, 0.8),
+                transparent
+            );
+            animation: waveHell 3s ease-in-out infinite;
+            mix-blend-mode: screen;
+            z-index: 5;
+        }
+        
+        @keyframes waveHell {
+            0%, 100% { 
+                transform: translateX(0%) rotate(0deg) scaleY(1); 
+                filter: hue-rotate(0deg);
+            }
+            25% { 
+                transform: translateX(20%) rotate(10deg) scaleY(2); 
+                filter: hue-rotate(90deg);
+            }
+            50% { 
+                transform: translateX(-10%) rotate(-5deg) scaleY(0.5); 
+                filter: hue-rotate(180deg);
+            }
+            75% { 
+                transform: translateX(30%) rotate(15deg) scaleY(1.5); 
+                filter: hue-rotate(270deg);
+            }
+        }
+        
+        /* Matrix rain ultra hardcore */
+        .matrix-hardcore {
+            position: absolute;
+            top: -100px;
+            font-family: 'Creepster', cursive;
+            color: #00ff00;
+            font-size: clamp(20px, 4vw, 60px);
+            animation: matrixHardcore 4s linear infinite;
+            text-shadow: 0 0 30px currentColor;
+            z-index: 15;
+            mix-blend-mode: difference;
+        }
+        
+        @keyframes matrixHardcore {
+            0% { 
+                transform: translateY(-100px) rotate(0deg) scale(1); 
+                opacity: 0; 
+                filter: hue-rotate(0deg);
+            }
+            10% { 
+                opacity: 1; 
+                filter: hue-rotate(36deg);
+            }
+            50% {
+                transform: translateY(50vh) rotate(180deg) scale(2);
+                filter: hue-rotate(180deg);
+            }
+            90% { 
+                opacity: 1; 
+                filter: hue-rotate(324deg);
+            }
+            100% { 
+                transform: translateY(120vh) rotate(360deg) scale(0.5); 
+                opacity: 0; 
+                filter: hue-rotate(360deg);
+            }
+        }
+        
+        /* Explosion de clic */
+        .click-explosion {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9997;
+            mix-blend-mode: screen;
+        }
+        
+        .explosion-particle {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            animation: explode 1.5s ease-out forwards;
+        }
+        
+        @keyframes explode {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        
+        /* Overlay hallucinant */
+        .hallucination-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 30% 70%, rgba(255, 0, 255, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(0, 255, 255, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 0, 0.1) 0%, transparent 60%);
+            animation: hallucinationPulse 5s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 999;
+            mix-blend-mode: color-dodge;
+        }
+        
+        @keyframes hallucinationPulse {
+            0%, 100% { 
+                opacity: 0.5; 
+                transform: scale(1) rotate(0deg);
+                filter: hue-rotate(0deg);
+            }
+            33% { 
+                opacity: 0.9; 
+                transform: scale(1.2) rotate(120deg);
+                filter: hue-rotate(120deg);
+            }
+            66% { 
+                opacity: 0.7; 
+                transform: scale(0.8) rotate(240deg);
+                filter: hue-rotate(240deg);
+            }
+        }
+        
+        /* Textes délirants qui apparaissent */
+        .crazy-popup-text {
+            position: fixed;
+            font-family: 'Creepster', cursive;
+            font-size: clamp(30px, 6vw, 80px);
+            color: #ff00ff;
+            text-shadow: 0 0 50px currentColor;
+            animation: popupCrazy 3s ease-in-out infinite;
+            mix-blend-mode: difference;
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        @keyframes popupCrazy {
+            0%, 90% {
+                opacity: 0;
+                transform: scale(0) rotate(0deg);
+            }
+            10%, 80% {
+                opacity: 1;
+                transform: scale(1.5) rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cat-cursor" id="catCursor">😸</div>
+    <div class="hallucination-overlay"></div>
     
-    
- <center>  <img src = "images/pony-town-{мαgı¢αι gıгι мısнĸα}-trot-blinking-4x.gif" />
-  <img src = "images/pony-town-{мαgı¢αι gıгι мısнĸα}-trot-blinking-4x.gif" />
-   <img src = "images/pony-town-{мαgı¢αι gıгι мısнĸα}-trot-blinking-4x.gif" />
-    <img src = "images/pony-town-{мαgı¢αι gıгι мısнĸα}-trot-blinking-4x.gif" /></center>
-
-   
-   <center> <a href = "https://mishkadotcom.neocities.org/mewmewfanzone.html" > <img src = "images/VBCAPW0YXXCA1RRZH7CA0MNBQFCAID155FCAO0GCOJCAV8BMH8CAYBSW8WCAFMT5P3CAE83521CALAM32JCAQYKGOZCA2JB2BPCAP0U43SCAXJVR79CAACE9U5CAFH3LLNCA1X1O3NCAMY8CGICAY9XWBX.jpg" width = "300px" height = "300px"/> </a>
-   <img src = "images/fox.jpg" alt = "my fursona!" width = "300px" height = "300px" /> 
-   <center>
-   <a href = "https://mishkadotcom.neocities.org/indexbackup.html"> <img src = "images/MISHKA.gif" /> </a>
-     <a href = "https://mishkadotcom.neocities.org/indexbackup.html"> <img src = "images/MISHKA.gif" /> </a>
-       <a href = "https://mishkadotcom.neocities.org/indexbackup.html"> <img src = "images/MISHKA.gif" /> </a>
-         <a href = "https://mishkadotcom.neocities.org/indexbackup.html"> <img src = "images/MISHKA.gif" /> </a>
-            <a href = "https://mishkadotcom.neocities.org/indexbackup.html"> <img src = "images/MISHKA.gif" /> </a>
-     <a href = "https://mishkadotcom.neocities.org/indexbackup.html"> <img src = "images/MISHKA.gif" /> </a>
-       <a href = "https://mishkadotcom.neocities.org/indexbackup.html"> <img src = "images/MISHKA.gif" /> </a>
-         <a href = "https://mishkadotcom.neocities.org/indexbackup.html"> <img src = "images/MISHKA.gif" /> </a>
-
-
-   </center>
-   
-   <center>
-    <a href = "https://mishkadotcom.neocities.org/magicbabymuseum.html">  <img src = "images/WJXpNea.jpg"  width = "600px" height = "600px"  />
-    </a>
-    </center>
-         <img src = "images/LazuliN.png" width = "200px" height = "200px"/>
-      <img src = "images/856546431_1878127.gif" />
-
-
-        <img src = "images/31426.gif" /> 
-              <img src = "images/Sparkle_Nano.png" width = "200px" height = "200px" />
-  <center>
-  <img src = "images/04_06_07_felix1_thumb_465_459_int.jpg" width = "400px" height = "400px" />
-  <img src = "images/768449980_1462604.gif" />
-  <img src = "images/71MdVAYmtgL.jpg" width = "400px" height = "400px" />
-  
-  </center>
-  </center>
-  <center>
-  <iframe width="560" height="315" src="https://www.youtube.com/embed/_Ypjz_XXKz8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-  <iframe width="560" height="315" src="https://www.youtube.com/embed/VaFo2TqoGrw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-<iframe width="560" height="315" src="https://www.youtube.com/embed/C1nfzgllZQA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-</center>
-<center>
-
-</center>
-<center>
-<a href = "https://soundcloud.com/mishkabeats" > <img src = "images/cooltext405098421760609.gif" alt = "click me for music!!!" /> </a>
-</center>
-<center>
-<a href = "https://www.youtube.com/watch?v=Yxg-AADx39w" > <img src = "images/kemonofriends.jpg" width = "400px" height = "400px" /> </a>
-
-<center>
-<img src = "images/lyrabon__stamp__by_kingbases_dc92hj2-fullview.png" />
-<img src = "images/d2xld76-b86adb8c-ff9d-4bcf-ac09-d31cccca6570.png " />
-<img src = "images/d2e9xpz-d3b04cde-5cbb-45fe-a023-f356db8d453a.gif " />
-<img src = "images/d2a4f66-aa8dc77f-7c17-4baa-b343-677ae361a818.gif " />
-<img src = "images/d460trd-de4c57d4-3cdb-4a03-9862-03ac099e0dda.png " />
-<img src = " " />
-</center>
-
-    <style type="text/css">* {cursor: url(https://cur.cursors-4u.net/toons/too-3/too290.cur), auto !important;} </style><a href="https://www.cursors-4u.com/cursor/2006/03/02/too290.html" target="_blank" title="The Simpsons - Scratchy The Cat"><img src="https://cur.cursors-4u.net/cursor.png" border="0" alt="The Simpsons - Scratchy The Cat" style="position:absolute; top: 0px; right: 0px;" /></a>
-  
-   <!--da hue rotation :) -->
-  <style>
-  
-    img {
-  filter: hue-rotate(90deg);
-  
-
-        -webkit-animation: changeColor 5s infinite;
-
-        -moz-animation:    changeColor 5s infinite;
-
-        -o-animation:      changeColor 5s infinite;
-
-        animation:         changeColor 5s infinite;
-
-    }
-
-    
-
-    @-webkit-keyframes changeColor {
-
-      0%   {
-
-        -webkit-filter: hue-rotate(0deg);
-
-        -moz-filter: hue-rotate(0deg);
-
-        -o-filter: hue-rotate(0deg);
-
-        filter: hue-rotate(0deg);
-
-      }
-
-    
-
-      100% {
-
-        -webkit-filter: hue-rotate(360deg);
-
-        -moz-filter: hue-rotate(360deg);
-
-        -o-filter: hue-rotate(360deg);
-
-        filter: hue-rotate(360deg);
-
-      }
-
-    }
-
-    @-moz-keyframes changeColor {
-
-      0%   {
-
-        -webkit-filter: hue-rotate(0deg);
-
-        -moz-filter: hue-rotate(0deg);
-
-        -o-filter: hue-rotate(0deg);
-
-        filter: hue-rotate(0deg);
-
-      }
-
-    
-
-      100% {
-
-        -webkit-filter: hue-rotate(360deg);
-
-        -moz-filter: hue-rotate(360deg);
-
-        -o-filter: hue-rotate(360deg);
-
-        filter: hue-rotate(360deg);
-
-      }
-
-    }
-
-    @-o-keyframes changeColor {
-
-      0%   {
-
-        -webkit-filter: hue-rotate(0deg);
-
-        -moz-filter: hue-rotate(0deg);
-
-        -o-filter: hue-rotate(0deg);
-
-        filter: hue-rotate(0deg);
-
-      }
-
-    
-
-      100% {
-
-        -webkit-filter: hue-rotate(360deg);
-
-        -moz-filter: hue-rotate(360deg);
-
-        -o-filter: hue-rotate(360deg);
-
-        filter: hue-rotate(360deg);
-
-      }
-
-    }
-
-    @keyframes changeColor {
-
-      0%   {
-
-        -webkit-filter: hue-rotate(0deg);
-
-        -moz-filter: hue-rotate(0deg);
-
-        -o-filter: hue-rotate(0deg);
-
-        filter: hue-rotate(0deg);
-
-      }
-
-    
-
-      100% {
-
-        -webkit-filter: hue-rotate(360deg);
-
-        -moz-filter: hue-rotate(360deg);
-
-        -o-filter: hue-rotate(360deg);
-
-        filter: hue-rotate(360deg);
-
-      }
-
-    }
+    <div class="container">
+        <!-- Vagues de l'enfer -->
+        <div class="hell-wave" style="animation-delay: 0s;"></div>
+        <div class="hell-wave" style="animation-delay: -1s;"></div>
+        <div class="hell-wave" style="animation-delay: -2s;"></div>
+        <div class="hell-wave" style="animation-delay: -0.5s;"></div>
+        <div class="hell-wave" style="animation-delay: -1.5s;"></div>
+        
+        <!-- Texte AUTISM principal -->
+        <div class="autism-text">AUTISM</div>
+        
+        <!-- Éléments qui tournent -->
+        <div class="spinning-element" style="top: 10%; left: 5%; animation-delay: 0s;">🌀</div>
+        <div class="spinning-element" style="top: 15%; right: 10%; animation-delay: -1s;">⚡</div>
+        <div class="spinning-element" style="top: 80%; left: 8%; animation-delay: -2s;">🔥</div>
+        <div class="spinning-element" style="top: 75%; right: 15%; animation-delay: -3s;">✨</div>
+        <div class="spinning-element" style="top: 30%; left: 90%; animation-delay: -4s;">💫</div>
+        <div class="spinning-element" style="top: 60%; left: 2%; animation-delay: -5s;">🌟</div>
+        <div class="spinning-element" style="top: 40%; right: 5%; animation-delay: -0.5s;">💎</div>
+        <div class="spinning-element" style="top: 20%; left: 50%; animation-delay: -1.5s;">🎨</div>
+        <div class="spinning-element" style="top: 90%; right: 40%; animation-delay: -2.5s;">🎭</div>
+        <div class="spinning-element" style="top: 5%; right: 50%; animation-delay: -3.5s;">🎪</div>
+        
+        <!-- Éléments qui grossissent -->
+        <div class="growing-element" style="top: 25%; left: 15%; animation-delay: 0s;">🌊</div>
+        <div class="growing-element" style="top: 70%; right: 20%; animation-delay: -1s;">🏖️</div>
+        <div class="growing-element" style="top: 50%; left: 85%; animation-delay: -2s;">🐚</div>
+        <div class="growing-element" style="top: 35%; right: 80%; animation-delay: -3s;">🦀</div>
+        <div class="growing-element" style="top: 85%; left: 25%; animation-delay: -1.5s;">🏄‍♀️</div>
+        <div class="growing-element" style="top: 45%; right: 25%; animation-delay: -2.5s;">🐙</div>
+        <div class="growing-element" style="top: 65%; left: 70%; animation-delay: -0.5s;">🌺</div>
+        <div class="growing-element" style="top: 15%; left: 80%; animation-delay: -3.5s;">🦜</div>
+        
+        <!-- Éléments qui pulsent -->
+        <div class="pulsing-element" style="top: 20%; left: 30%; animation-delay: 0s;">🏝️</div>
+        <div class="pulsing-element" style="top: 55%; right: 35%; animation-delay: -1s;">🐬</div>
+        <div class="pulsing-element" style="top: 75%; left: 60%; animation-delay: -2s;">🌴</div>
+        <div class="pulsing-element" style="top: 30%; right: 60%; animation-delay: -1.5s;">🦈</div>
+        <div class="pulsing-element" style="top: 80%; right: 70%; animation-delay: -0.8s;">🐠</div>
+        <div class="pulsing-element" style="top: 40%; left: 40%; animation-delay: -2.3s;">🦑</div>
+        <div class="pulsing-element" style="top: 90%; left: 50%; animation-delay: -1.2s;">🐢</div>
+        
+        <!-- Textes popup délirants -->
+        <div class="crazy-popup-text" style="top: 15%; left: 20%; animation-delay: 2s;">TRIP</div>
+        <div class="crazy-popup-text" style="top: 75%; right: 15%; animation-delay: 5s;">VIBES</div>
+        <div class="crazy-popup-text" style="top: 35%; left: 10%; animation-delay: 8s;">CHAOS</div>
+        <div class="crazy-popup-text" style="top: 85%; left: 70%; animation-delay: 11s;">DREAM</div>
+        <div class="crazy-popup-text" style="top: 25%; right: 30%; animation-delay: 14s;">WILD</div>
+        <div class="crazy-popup-text" style="top: 65%; right: 10%; animation-delay: 17s;">MAGIC</div>
+    </div>
+
+    <script>
+        // Curseur chaton kawaii
+        const catCursor = document.getElementById('catCursor');
+        let mouseX = 0, mouseY = 0;
+        let catEmojis = ['😸', '😺', '😻', '🐱', '😹', '😽', '🙀', '😿', '😾','🍆'];
+        let currentCat = 0;
+        
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
             
-
-
-  
-  
-  
-
-  </body>
-</html>
+            // Créer traînée psychédélique
+            createMouseTrail(mouseX, mouseY);
+        });
+        
+        function updateCursor() {
+            catCursor.style.left = (mouseX - 30) + 'px';
+            catCursor.style.top = (mouseY - 30) + 'px';
+            requestAnimationFrame(updateCursor);
+        }
+        updateCursor();
+        
+        // Changer le chaton régulièrement
+        setInterval(() => {
+            currentCat = (currentCat + 1) % catEmojis.length;
+            catCursor.textContent = catEmojis[currentCat];
+        }, 1000);
+        
+        // Traînée de souris ultra psyché
+        function createMouseTrail(x, y) {
+            const trail = document.createElement('div');
+            trail.className = 'mouse-trail';
+            
+            const colors = ['#ff00ff', '#00ffff', '#ffff00', '#ff0080', '#8000ff', '#00ff80'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const size = Math.random() * 30 + 10;
+            
+            trail.style.background = `radial-gradient(circle, ${color}, transparent)`;
+            trail.style.width = size + 'px';
+            trail.style.height = size + 'px';
+            trail.style.left = (x - size/2) + 'px';
+            trail.style.top = (y - size/2) + 'px';
+            trail.style.boxShadow = `0 0 ${size*2}px ${color}`;
+            
+            document.body.appendChild(trail);
+            
+            setTimeout(() => {
+                trail.remove();
+            }, 2000);
+        }
+        
+        // Générer des particules folles
+        function createCrazyParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'crazy-particle';
+            
+            const size = Math.random() * 40 + 20;
+            const colors = ['#ff00ff', '#00ffff', '#ffff00', '#ff0080', '#8000ff', '#00ff80', '#ff4000'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const emojis = ['⭐', '✨', '💫', '🌟', '⚡', '🔥', '💎', '🌀', '💥', '🎆', '🎇','🍆'];
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+            
+            particle.innerHTML = emoji;
+            particle.style.fontSize = size + 'px';
+            particle.style.color = color;
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.textShadow = `0 0 ${size}px ${color}`;
+            particle.style.animationDelay = Math.random() * 4 + 's';
+            particle.style.animationDuration = (Math.random() * 4 + 6) + 's';
+            
+            document.body.appendChild(particle);
+            
+            setTimeout(() => {
+                particle.remove();
+            }, 10000);
+        }
+        
+        // Générer particules en continu
+        setInterval(createCrazyParticle, 200);
+        
+        // Matrix rain hardcore
+        function createMatrixHardcore() {
+            const chars = '01アイウエオカキクケコサシスセソタチツテト★☆♦♠♣♥▲▼◆◇※∞Ω∑π∆∇∂∞AUTISM';
+            const specialEmojis = ['🧠', '🌈', '👁️', '🔮', '🎨', '🌀', '⚡', '💥', '🎭', '🎪'];
+            const allChars = chars + specialEmojis.join('');
+            
+            const rain = document.createElement('div');
+            rain.className = 'matrix-hardcore';
+            rain.textContent = allChars[Math.floor(Math.random() * allChars.length)];
+            rain.style.left = Math.random() * 100 + '%';
+            rain.style.animationDelay = Math.random() * 3 + 's';
+            rain.style.animationDuration = (Math.random() * 2 + 3) + 's';
+            rain.style.fontSize = (Math.random() * 60 + 30) + 'px';
+            rain.style.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            
+            document.body.appendChild(rain);
+            
+            setTimeout(() => {
+                rain.remove();
+            }, 6000);
+        }
+        
+        setInterval(createMatrixHardcore, 100);
+        
+        // Explosion de clic mega délirant
+        document.addEventListener('click', (e) => {
+            // Changer le chaton au clic
+            catCursor.textContent = catEmojis[Math.floor(Math.random() * catEmojis.length)];
+            
+            // Créer explosion de particules
+            const explosion = document.createElement('div');
+            explosion.className = 'click-explosion';
+            explosion.style.left = e.clientX + 'px';
+            explosion.style.top = e.clientY + 'px';
+            
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'explosion-particle';
+                
+                const angle = (360 / 30) * i;
+                const distance = Math.random() * 200 + 50;
+                const size = Math.random() * 20 + 10;
+                const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                
+                particle.style.background = `radial-gradient(circle, ${color}, transparent)`;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = '0px';
+                particle.style.top = '0px';
+                particle.style.boxShadow = `0 0 ${size*2}px ${color}`;
+                
+                const x = Math.cos(angle * Math.PI / 180) * distance;
+                const y = Math.sin(angle * Math.PI / 180) * distance;
+                particle.style.setProperty('--x', x + 'px');
+                particle.style.setProperty('--y', y + 'px');
+                particle.style.animation = `explode 1.5s ease-out forwards`;
+                particle.style.transform = `translate(var(--x, 0), var(--y, 0))`;
+                
+                explosion.appendChild(particle);
+            }
+            
+            document.body.appendChild(explosion);
+            
+            setTimeout(() => {
+                explosion.remove();
+            }, 1500);
+            
+            // Secouer l'écran
+            document.body.style.animation = 'none';
+            document.body.offsetHeight; // Force reflow
+            document.body.style.animation = 'megaBgTrip 0.2s ease infinite';
+            setTimeout(() => {
+                document.body.style
