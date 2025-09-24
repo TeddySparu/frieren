@@ -456,13 +456,14 @@
 
         // REMPLACEZ cette configuration par la vôtre
         const firebaseConfig = {
-  apiKey: "AIzaSyBhyxeEHBKrhuECJKt2d7NwSN7lcv39IX0",
-  authDomain: "frieren-2-79e0c.firebaseapp.com",
-  projectId: "frieren-2-79e0c",
-  storageBucket: "frieren-2-79e0c.firebasestorage.app",
-  messagingSenderId: "861104473745",
-  appId: "1:861104473745:web:377da7b0daaf5570572130"
-};
+            // Votre configuration Firebase ici
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN", 
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -570,33 +571,45 @@
             document.getElementById('gameOverScreen').classList.add('hidden');
             
             try {
-                // Rechercher une partie en attente
+                console.log('Recherche d\'adversaire...');
+                
+                // Rechercher une partie en attente (sans orderBy pour éviter les erreurs d'index)
                 const waitingGames = query(
                     collection(db, 'games'),
                     where('status', '==', 'waiting'),
-                    orderBy('createdAt'),
                     limit(1)
                 );
                 
                 const snapshot = await getDocs(waitingGames);
+                console.log('Parties en attente trouvées:', snapshot.size);
                 
                 if (!snapshot.empty) {
-                    // Rejoindre une partie existante
+                    // Vérifier qu'on ne rejoint pas notre propre partie
                     const gameDoc = snapshot.docs[0];
                     const gameData = gameDoc.data();
                     
-                    currentGameId = gameDoc.id;
-                    
-                    // Mettre à jour la partie avec le deuxième joueur
-                    await updateDoc(doc(db, 'games', currentGameId), {
-                        player2: currentUser.uid,
-                        status: 'playing',
-                        startTime: new Date()
-                    });
-                    
-                    startGame();
-                } else {
-                    // Créer une nouvelle partie
+                    if (gameData.player1 !== currentUser.uid) {
+                        console.log('Rejoindre partie existante:', gameDoc.id);
+                        currentGameId = gameDoc.id;
+                        
+                        // Mettre à jour la partie avec le deuxième joueur
+                        await updateDoc(doc(db, 'games', currentGameId), {
+                            player2: currentUser.uid,
+                            status: 'playing',
+                            startTime: new Date()
+                        });
+                        
+                        console.log('Partie rejointe, démarrage...');
+                        startGame();
+                        return;
+                    } else {
+                        console.log('Partie trouvée mais c\'est la nôtre, on attend...');
+                    }
+                }
+                
+                // Créer une nouvelle partie ou attendre si c'est notre partie
+                if (!currentGameId) {
+                    console.log('Création d\'une nouvelle partie...');
                     const newGame = {
                         player1: currentUser.uid,
                         player2: null,
@@ -606,36 +619,49 @@
                             player1: { ...initialPlayerState },
                             player2: { ...initialPlayerState },
                             turn: 1,
-                            timeLeft: 180 // 3 minutes
+                            timeLeft: 180
                         }
                     };
                     
                     const gameRef = await addDoc(collection(db, 'games'), newGame);
                     currentGameId = gameRef.id;
-                    
-                    // Écouter les changements pour détecter quand un joueur rejoint
-                    gameListener = onSnapshot(doc(db, 'games', currentGameId), (doc) => {
-                        const data = doc.data();
-                        if (data && data.status === 'playing') {
-                            startGame();
-                        }
-                    });
+                    console.log('Nouvelle partie créée:', currentGameId);
                 }
+                
+                // Écouter les changements pour détecter quand un joueur rejoint
+                if (gameListener) gameListener();
+                gameListener = onSnapshot(doc(db, 'games', currentGameId), (doc) => {
+                    const data = doc.data();
+                    console.log('Changement partie:', data?.status);
+                    if (data && data.status === 'playing') {
+                        console.log('Adversaire trouvé !');
+                        startGame();
+                    }
+                });
+                
             } catch (error) {
                 console.error('Erreur de matchmaking:', error);
-                document.getElementById('authError').textContent = 'Erreur de matchmaking';
+                alert('Erreur de matchmaking: ' + error.message);
             }
         };
 
         window.cancelMatchmaking = function() {
+            console.log('Annulation matchmaking');
+            
             if (gameListener) {
                 gameListener();
                 gameListener = null;
             }
             
             if (currentGameId) {
-                // Supprimer la partie en attente
-                deleteDoc(doc(db, 'games', currentGameId));
+                // Supprimer la partie en attente seulement si on est player1
+                getDoc(doc(db, 'games', currentGameId)).then(docSnapshot => {
+                    const gameData = docSnapshot.data();
+                    if (gameData && gameData.player1 === currentUser.uid && gameData.status === 'waiting') {
+                        deleteDoc(doc(db, 'games', currentGameId));
+                        console.log('Partie supprimée');
+                    }
+                });
                 currentGameId = null;
             }
             
@@ -644,6 +670,8 @@
 
         // Démarrage du jeu
         function startGame() {
+            console.log('Démarrage du jeu...');
+            
             if (gameListener) {
                 gameListener();
             }
@@ -655,7 +683,8 @@
             gameListener = onSnapshot(doc(db, 'games', currentGameId), (doc) => {
                 const data = doc.data();
                 if (data) {
-                    updateGameUI(data.gameState);
+                    console.log('Mise à jour état jeu:', data.status);
+                    updateGameUI(data.gameState, data);
                     
                     if (data.status === 'finished') {
                         endGame(data.winner);
@@ -668,6 +697,8 @@
         }
 
         function initializeGame() {
+            console.log('Initialisation du jeu...');
+            
             // Réinitialiser les stats
             gameState = {
                 player: { ...initialPlayerState },
@@ -682,9 +713,10 @@
             // Démarrer le timer
             startGameTimer();
             
-            // Régénération de mana
-            setInterval(() => {
-                if (gameState.player.mana < gameState.player.maxMana) {
+            // Régénération de mana (nettoyer les anciens intervals)
+            if (window.manaInterval) clearInterval(window.manaInterval);
+            window.manaInterval = setInterval(() => {
+                if (gameState && gameState.player.mana < gameState.player.maxMana) {
                     gameState.player.mana = Math.min(gameState.player.mana + 1, gameState.player.maxMana);
                     updateUI();
                 }
@@ -885,21 +917,23 @@
             }
         }
 
-        function updateGameUI(serverGameState) {
-            if (!serverGameState) return;
+        function updateGameUI(serverGameState, gameData) {
+            if (!serverGameState || !gameData) return;
+            
+            console.log('Mise à jour UI, player1:', gameData.player1, 'player2:', gameData.player2, 'currentUser:', currentUser.uid);
             
             // Déterminer quel joueur nous sommes
-            const gameDoc = doc(db, 'games', currentGameId);
-            getDoc(gameDoc).then(docSnapshot => {
-                const gameData = docSnapshot.data();
-                const isPlayer1 = gameData.player1 === currentUser.uid;
-                
-                // Mettre à jour notre état local avec les données du serveur
-                gameState.player = serverGameState[isPlayer1 ? 'player1' : 'player2'];
-                gameState.enemy = serverGameState[isPlayer1 ? 'player2' : 'player1'];
-                
-                updateUI();
-            });
+            const isPlayer1 = gameData.player1 === currentUser.uid;
+            
+            // Mettre à jour notre état local avec les données du serveur
+            gameState.player = serverGameState[isPlayer1 ? 'player1' : 'player2'];
+            gameState.enemy = serverGameState[isPlayer1 ? 'player2' : 'player1'];
+            
+            // Mettre à jour les noms des joueurs
+            document.getElementById('playerName').textContent = 'Vous';
+            document.getElementById('enemyName').textContent = 'Adversaire';
+            
+            updateUI();
         }
 
         function updateUI() {
