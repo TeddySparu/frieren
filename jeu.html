@@ -43,11 +43,6 @@
             text-shadow: 0 0 20px #f0f, 0 0 30px #f0f;
             margin-bottom: 30px;
         }
-        .screen h2 {
-            font-size: 2.5em;
-            color: #0ff;
-            text-shadow: 0 0 15px #0ff;
-        }
         .screen button {
             font-family: 'Orbitron', sans-serif;
             font-size: 1.5em;
@@ -124,58 +119,54 @@
 <body>
 
     <div id="loading-screen" class="screen">
-        <h1>Connexion au serveur...</h1>
+        <h1>Connexion...</h1>
     </div>
 
     <div id="login-screen" class="screen hidden">
         <h1>Ultimate Brawl</h1>
-        <p style="font-size: 1.2em;">Veuillez vous connecter via la page principale pour jouer.</p>
-        <a href="index.html" style="text-decoration: none;"><button>Retour au Site</button></a>
+        <a href="index.html" style="text-decoration: none;"><button>Connexion requise</button></a>
     </div>
 
-    <div id="charselect-screen" class="screen hidden">
+    <div id="char-select-screen" class="screen hidden">
         <h1>Choisissez votre combattant</h1>
         <div id="character-select">
             <div class="char-card" id="char-frieren" onclick="window.game.selectCharacter('frieren')">
-                <p>🧙‍♀️</p>
-                <h3>Frieren</h3>
+                <p>🧙‍♀️</p><h3>Frieren</h3>
             </div>
             <div class="char-card" id="char-jagermeister" onclick="window.game.selectCharacter('jagermeister')">
-                <p>🦌</p>
-                <h3>Jägermaister</h3>
+                <p>🦌</p><h3>Jägermaister</h3>
             </div>
         </div>
-        <p id="char-select-status" style="font-size: 1.5em; min-height: 2em;">Sélectionnez un personnage</p>
         <button id="ready-btn" disabled onclick="window.game.setReady()">PRÊT !</button>
     </div>
 
     <div id="matchmaking-screen" class="screen hidden">
         <h1>Recherche d'un adversaire...</h1>
-        <p style="font-size: 1.5em;">Joueurs prêts en attente...</p>
         <button onclick="window.game.cancelMatchmaking()">Annuler</button>
     </div>
 
-    <div id="game-screen" class="screen hidden">
-        <div id="game-container">
-            <canvas id="game-canvas"></canvas>
-            <div id="hud">
-                <div id="player1-hud" class="player-hud">
-                    <div class="stocks">P1 ❤️❤️❤️</div>
-                    <div class="damage">0%</div>
-                </div>
-                <div id="player2-hud" class="player-hud">
-                    <div class="damage">0%</div>
-                    <div class="stocks">P2 ❤️❤️❤️</div>
-                </div>
+    <div id="game-container" class="screen hidden">
+        <canvas id="game-canvas"></canvas>
+        <div id="hud">
+            <div id="player1-hud" class="player-hud">
+                <div class="stocks">P1 ❤️❤️❤️</div><div class="damage">0%</div>
+            </div>
+            <div id="player2-hud" class="player-hud">
+                <div class="damage">0%</div><div class="stocks">P2 ❤️❤️❤️</div>
             </div>
         </div>
     </div>
     
-    <div id="gameover-screen" class="screen hidden">
+    <div id="game-over-screen" class="screen hidden">
         <h1 id="game-result"></h1>
         <button onclick="window.game.rematch()">Rejouer</button>
         <a href="index.html" style="text-decoration: none;"><button>Menu Principal</button></a>
     </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, doc, onSnapshot, collection, query, where, limit, getDocs, updateDoc, deleteDoc, setDoc, serverTimestamp, addDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
