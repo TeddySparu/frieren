@@ -252,21 +252,15 @@
             setState(newState) {
                 this.state = newState;
                 Object.values(this.ui).forEach(el => el.classList.add('hidden'));
-                switch(newState) {
-                    case 'LOADING': this.ui.loading.classList.remove('hidden'); break;
-                    case 'LOGIN': this.ui.login.classList.remove('hidden'); break;
-                    case 'CHAR_SELECT': this.ui.charSelect.classList.remove('hidden'); break;
-                    case 'MATCHMAKING': this.ui.matchmaking.classList.remove('hidden'); break;
-                    case 'PLAYING': this.ui.game.classList.remove('hidden'); break;
-                    case 'GAMEOVER': this.ui.gameOver.classList.remove('hidden'); break;
-                }
+                const screenToShow = this.ui[newState.toLowerCase().split('_')[0]];
+                if (screenToShow) screenToShow.classList.remove('hidden');
             }
 
             authCheck() {
                 onAuthStateChanged(auth, user => {
                     if (user) {
                         this.currentUser = user;
-                        this.setState('CHAR_SELECT');
+                        if(this.state !== 'GAMEOVER') this.setState('CHAR_SELECT');
                     } else {
                         this.currentUser = null;
                         this.setState('LOGIN');
@@ -280,10 +274,10 @@
                 
                 document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
                 document.getElementById(`char-${charId}`).classList.add('selected');
-                this.ui.charSelectStatus.textContent = `Vous avez choisi ${CHARACTERS[charId].name}. En attente de l'adversaire...`;
+                this.ui.charSelectStatus.textContent = `Vous avez choisi ${CHARACTERS[charId].name}. Recherche d'un adversaire...`;
 
                 this.myCharId = charId;
-                this.startMatchmaking();
+                await this.startMatchmaking();
             }
 
             async startMatchmaking() {
@@ -313,6 +307,17 @@
                     this.listenToGame();
                 }
             }
+            
+            async cancelMatchmaking() {
+                if (this.gameListener) this.gameListener();
+                if (this.currentGameId && this.playerNumber === 1) {
+                    await deleteDoc(doc(db, "ultimate-brawl-games", this.currentGameId));
+                }
+                this.cleanup();
+                this.setState('CHAR_SELECT');
+                this.ui.charSelectStatus.textContent = 'En attente de votre choix...';
+                document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
+            }
 
             getInitialGameState() {
                 return {
@@ -339,12 +344,23 @@
             listenToGame() {
                 if (this.gameListener) this.gameListener();
                 this.gameListener = onSnapshot(doc(db, "ultimate-brawl-games", this.currentGameId), (doc) => {
-                    if (!doc.exists()) return this.cleanup();
+                    if (!doc.exists()) {
+                        if(this.state === 'PLAYING') alert("L'adversaire a quitté la partie.");
+                        this.cancelMatchmaking();
+                        return;
+                    }
                     
                     const gameState = doc.data();
                     if (gameState.status === 'playing') {
                         if (this.state !== 'PLAYING') this.startGame(gameState);
-                        this.players = { p1: new Player(gameState.p1, this), p2: new Player(gameState.p2, this) };
+                        
+                        // Merge remote state with local state carefully
+                        if(!this.players.p1) this.players.p1 = new Player(gameState.p1, this);
+                        else this.players.p1.syncState(gameState.p1);
+                        
+                        if(!this.players.p2) this.players.p2 = new Player(gameState.p2, this);
+                        else this.players.p2.syncState(gameState.p2);
+                        
                     }
                     if (gameState.status === 'finished') {
                         this.endGame(gameState.winner);
@@ -356,7 +372,7 @@
                 this.setState('PLAYING');
                 this.players = { p1: new Player(initialState.p1, this), p2: new Player(initialState.p2, this) };
                 this.setupKeyboardListeners();
-                this.gameLoop();
+                if(!this.animationFrameId) this.gameLoop();
             }
 
             gameLoop() {
@@ -366,50 +382,63 @@
             }
 
             update() {
-                if (this.state !== 'PLAYING' || !this.players.p1 || !this.players.p2) return;
+                if (this.state !== 'PLAYING' || !this.players.p1 || !this.players.p2 || !this.playerNumber) return;
                 
                 const myPlayer = this.playerNumber === 1 ? this.players.p1 : this.players.p2;
-                const opponent = this.playerNumber === 1 ? this.players.p2 : this.players.p1;
                 
-                // --- CONTRÔLES LOCAUX ---
                 myPlayer.handleControls(this.keys);
                 
-                // --- MISE À JOUR PHYSIQUE ET ACTIONS ---
                 Object.values(this.players).forEach(p => p.update());
                 
-                // --- DÉTECTION DES COLLISIONS D'ATTAQUES ---
                 this.checkHitCollisions();
                 
-                // --- MISE À JOUR DES PROJECTILES ET PARTICULES ---
-                this.projectiles = this.projectiles.filter(p => p.update());
-                this.particles = this.particles.filter(p => p.update());
+                this.projectiles.forEach(p => p.update());
+                this.projectiles = this.projectiles.filter(p => p.active);
+                this.particles.forEach(p => p.update());
+                this.particles = this.particles.filter(p => p.life > 0);
                 
-                // --- ENVOI DE L'ÉTAT LOCAL À FIREBASE ---
                 this.sendStateToFirestore(myPlayer);
             }
 
             checkHitCollisions() {
                 const p1 = this.players.p1;
                 const p2 = this.players.p2;
+                if(!p1 || !p2) return;
 
-                if (p1.hitbox && p1.isHittable(p2) && p1.hitbox.collidesWith(p2.getHurtbox())) {
-                    p2.takeHit(p1.hitbox);
-                    p1.hitbox = null; 
-                }
-                if (p2.hitbox && p2.isHittable(p1) && p2.hitbox.collidesWith(p1.getHurtbox())) {
-                    p1.takeHit(p2.hitbox);
-                    p2.hitbox = null;
-                }
+                const check = (attacker, defender) => {
+                    if (attacker.hitbox && attacker.isHittable(defender) && attacker.hitbox.collidesWith(defender.getHurtbox())) {
+                        defender.takeHit(attacker.hitbox);
+                        attacker.hitbox = null; 
+                    }
+                };
+                check(p1, p2);
+                check(p2, p1);
+
+                this.projectiles.forEach(proj => {
+                    const target = proj.owner === p1 ? p2 : p1;
+                    if(proj.collidesWith(target.getHurtbox())){
+                        target.takeHit(proj);
+                        proj.active = false;
+                    }
+                });
             }
 
             async sendStateToFirestore(myPlayerData) {
-                if (!myPlayerData) return;
+                if (!myPlayerData || !this.currentGameId) return;
                 const updatePath = this.playerNumber === 1 ? "p1" : "p2";
                 try {
-                    await updateDoc(doc(db, "ultimate-brawl-games", this.currentGameId), {
-                        [updatePath]: myPlayerData.getState()
-                    });
-                } catch(e) { console.error("Firestore update failed:", e); }
+                    const currentState = myPlayerData.getState();
+                    if(currentState.stocks <= 0 && this.state === 'PLAYING') {
+                         await updateDoc(doc(db, "ultimate-brawl-games", this.currentGameId), {
+                            status: 'finished',
+                            winner: this.playerNumber === 1 ? this.players.p2.uid : this.players.p1.uid
+                        });
+                    } else {
+                        await updateDoc(doc(db, "ultimate-brawl-games", this.currentGameId), {
+                            [updatePath]: currentState
+                        });
+                    }
+                } catch(e) { /* console.error("Firestore update failed:", e); */ }
             }
 
             draw() {
@@ -448,12 +477,18 @@
             async rematch() {
                 this.cleanup();
                 this.setState('CHAR_SELECT');
+                this.ui.charSelectStatus.textContent = 'En attente de votre choix...';
+                document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
             }
 
             setupKeyboardListeners() {
                 this.keys = {};
                 window.onkeydown = e => this.keys[e.code] = true;
-                window.onkeyup = e => this.keys[e.code] = false;
+                window.onkeyup = e => {
+                    this.keys[e.code] = false;
+                    const myPlayer = this.playerNumber === 1 ? this.players.p1 : this.players.p2;
+                    if(myPlayer) myPlayer.canDoubleJump = true; // Reset double jump on key up
+                };
             }
 
             cleanupGameLogic() {
@@ -478,7 +513,13 @@
         class Player {
             constructor(state, game) {
                 this.game = game;
-                this.char = CHARACTERS[state.charId];
+                this.syncState(state);
+                this.canDoubleJump = true;
+            }
+
+            syncState(state) {
+                this.charId = state.charId;
+                if(this.charId) this.char = CHARACTERS[state.charId];
                 Object.assign(this, state);
             }
 
@@ -492,60 +533,57 @@
             }
 
             update() {
-                if (Date.now() < this.invincibleUntil) {
-                    this.action = 'invincible';
-                } else if (this.action === 'hitstun' || this.action === 'invincible') {
-                    this.action = 'idle';
-                }
+                if(!this.char) return; // Pas encore de personnage choisi
+                
+                if (Date.now() < this.invincibleUntil) this.action = 'invincible';
+                else if (this.action === 'hitstun' || this.action === 'invincible') this.action = 'idle';
 
-                // Appliquer la physique si pas en hitstun
-                if (this.action !== 'hitstun') {
+                if (this.action === 'hitstun') {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.vy += this.game.GRAVITY;
+                    this.vx *= 0.98; // Air friction when hit
+                    this.vy *= 0.99;
+                } else {
                     this.x += this.vx;
                     this.vx *= this.game.FRICTION;
-                } else {
-                     this.x += this.vx;
-                     this.y += this.vy;
+                    this.y += this.vy;
+                    this.vy += this.game.GRAVITY;
                 }
-                
-                this.vy += this.game.GRAVITY;
-                this.y += this.vy;
 
-                // Collisions avec les plateformes
                 this.isGrounded = false;
                 this.game.platforms.forEach(p => {
                     if (this.y + this.char.size.h >= p.y && this.y + this.char.size.h <= p.y + p.height &&
-                        this.x + this.char.size.w >= p.x && this.x <= p.x + p.width && this.vy > 0) {
+                        this.x + this.char.size.w > p.x && this.x < p.x + p.width && this.vy > 0) {
                         this.vy = 0;
                         this.y = p.y - this.char.size.h;
                         this.isGrounded = true;
-                        this.jumpsLeft = 2;
+                        if(this.action !== 'hitstun') this.jumpsLeft = 2;
                     }
                 });
                 
-                // Mettre à jour l'action et la hitbox
                 this.updateAction();
 
-                // Vérifier si le joueur est hors limites
-                if (this.y > this.game.canvas.height + 100 || this.x < -100 || this.x > this.game.canvas.width + 100) {
-                    this.loseStock();
+                if (this.y > this.game.canvas.height + 150 || this.x < -150 || this.x > this.game.canvas.width + 150) {
+                    if(this.uid === this.game.currentUser.uid) this.loseStock();
                 }
             }
             
             handleControls(keys) {
-                if (this.action !== 'idle' && this.action !== 'run' && this.action !== 'jump') return;
+                if (this.action.includes('attack') || this.action === 'hitstun') return;
                 
-                // Mouvement horizontal
                 if (keys['ArrowLeft']) { this.vx = -this.game.PLAYER_SPEED; this.facing = -1; }
                 if (keys['ArrowRight']) { this.vx = this.game.PLAYER_SPEED; this.facing = 1; }
                 
-                // Saut
-                if (keys['ArrowUp'] && this.jumpsLeft > 0) {
-                    this.vy = this.game.JUMP_FORCE;
-                    this.jumpsLeft--;
-                    keys['ArrowUp'] = false; // Consommer le saut
+                if (keys['ArrowUp']) {
+                    if (this.jumpsLeft > 0 && this.canDoubleJump) {
+                        this.vy = this.game.JUMP_FORCE;
+                        this.jumpsLeft--;
+                        this.isGrounded = false;
+                        this.canDoubleJump = false;
+                    }
                 }
 
-                // Attaques
                 if (keys['KeyJ']) this.performAttack('quick');
                 if (keys['KeyK']) this.performAttack('strong');
             }
@@ -562,43 +600,38 @@
 
             performAttack(type) {
                 const attack = this.char.attacks[type];
-                if (this.action !== 'idle' && this.action !== 'run' && this.action !== 'jump') return;
+                if (this.action.includes('attack')) return;
 
                 this.action = `${type}_attack`;
                 this.actionFrame = attack.duration + (attack.startup || 0);
                 
                 setTimeout(() => {
-                    if (this.action !== `${type}_attack`) return; // Action annulée
+                    if (this.action !== `${type}_attack`) return;
                     this.hitbox = new Hitbox(this, attack);
-                }, (attack.startup || 0) * (1000/60)); // Convertir les frames en ms
+                }, (attack.startup || 0) * (1000/60));
             }
 
             takeHit(hitbox) {
                 if (Date.now() < this.invincibleUntil) return;
                 
                 this.damage += hitbox.damage;
-                const totalKnockback = hitbox.knockbackBase + (this.damage * hitbox.knockbackScale / this.char.weight);
+                const totalKnockback = hitbox.knockbackBase + (this.damage * hitbox.knockbackScale * 0.01 / this.char.weight);
                 
                 this.vx = totalKnockback * hitbox.owner.facing;
-                this.vy = -totalKnockback * 0.7; // Angle d'éjection vers le haut
+                this.vy = -totalKnockback * 0.7;
                 
                 this.action = 'hitstun';
-                this.actionFrame = totalKnockback * 2; // Le hitstun dépend de la puissance du coup
+                this.actionFrame = totalKnockback > 5 ? totalKnockback * 2.5 : 15;
                 this.isGrounded = false;
                 
-                // Particules d'impact
                 for(let i = 0; i < 15; i++) {
                     this.game.particles.push(new Particle(this.x + this.char.size.w / 2, this.y + this.char.size.h / 2));
                 }
             }
 
             loseStock() {
-                if (Date.now() < this.invincibleUntil) return;
-                this.stocks--;
-                if(this.stocks <= 0) {
-                    // Le jeu est terminé, l'autre joueur gagne
-                    // L'état sera envoyé à Firestore, qui déclenchera la fin de partie
-                } else {
+                if (this.stocks > 0) {
+                    this.stocks--;
                     this.respawn();
                 }
             }
@@ -606,10 +639,8 @@
             respawn() {
                 this.x = this.game.canvas.width / 2;
                 this.y = 100;
-                this.vx = 0;
-                this.vy = 0;
-                this.damage = 0;
-                this.invincibleUntil = Date.now() + 2000; // 2 secondes d'invincibilité
+                this.vx = 0; this.vy = 0; this.damage = 0;
+                this.invincibleUntil = Date.now() + 2000;
             }
 
             getHurtbox() {
@@ -621,19 +652,17 @@
             }
 
             draw(ctx) {
+                if(!this.char) return;
                 ctx.save();
                 if (Date.now() < this.invincibleUntil && Math.floor(Date.now() / 100) % 2) {
                     ctx.globalAlpha = 0.5;
                 }
                 
-                // Dessin simple basé sur l'emoji
-                ctx.font = `${this.char.size.h}px sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.fillText(this.char.emoji, this.x + this.char.size.w / 2, this.y + this.char.size.h - 5);
+                ctx.fillStyle = this.char.color;
+                ctx.fillRect(this.x, this.y, this.char.size.w, this.char.size.h);
                 
                 ctx.restore();
 
-                // Debug Hitbox
                 if (this.hitbox) {
                     ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
                     ctx.fillRect(this.hitbox.x, this.hitbox.y, this.hitbox.w, this.hitbox.h);
@@ -644,44 +673,29 @@
         class Hitbox {
             constructor(owner, attack) {
                 this.owner = owner;
-                this.damage = attack.damage;
-                this.knockbackBase = attack.knockbackBase;
-                this.knockbackScale = attack.knockbackScale;
-
+                Object.assign(this, attack);
+                
                 const ownerBox = owner.getHurtbox();
                 this.w = attack.hitbox.w;
                 this.h = attack.hitbox.h;
                 this.y = ownerBox.y + (ownerBox.h / 2) - (this.h / 2);
-
-                if (owner.facing > 0) {
-                    this.x = ownerBox.x + ownerBox.w;
-                } else {
-                    this.x = ownerBox.x - this.w;
-                }
+                this.x = owner.facing > 0 ? ownerBox.x + ownerBox.w : ownerBox.x - this.w;
             }
-
             collidesWith(hurtbox) {
-                return this.x < hurtbox.x + hurtbox.w &&
-                       this.x + this.w > hurtbox.x &&
-                       this.y < hurtbox.y + hurtbox.h &&
-                       this.y + this.h > hurtbox.y;
+                return this.x < hurtbox.x + hurtbox.w && this.x + this.w > hurtbox.x &&
+                       this.y < hurtbox.y + hurtbox.h && this.y + this.h > hurtbox.y;
             }
         }
         
         class Particle {
             constructor(x, y) {
                 this.x = x; this.y = y;
-                this.vx = (Math.random() - 0.5) * 8;
-                this.vy = (Math.random() - 0.5) * 8;
+                this.vx = (Math.random() - 0.5) * 10; this.vy = (Math.random() - 0.5) * 10;
                 this.life = 30;
                 this.size = Math.random() * 5 + 2;
-                this.color = 'orange';
+                this.color = `hsl(${Math.random() * 50 + 10}, 100%, 50%)`;
             }
-            update() {
-                this.x += this.vx; this.y += this.vy;
-                this.life--;
-                return this.life > 0;
-            }
+            update() { this.x += this.vx; this.y += this.vy; this.life--; }
             draw(ctx) {
                 ctx.fillStyle = this.color;
                 ctx.globalAlpha = this.life / 30;
