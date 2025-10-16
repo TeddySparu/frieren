@@ -64,6 +64,10 @@
             background: #f0f;
             color: #0a0a14;
         }
+        .screen button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
         #character-select { display: flex; gap: 40px; }
         .char-card {
@@ -117,7 +121,7 @@
 <body>
 
     <div id="loading-screen" class="screen">
-        <h1>Chargement...</h1>
+        <h1>Connexion au serveur...</h1>
     </div>
 
     <div id="login-screen" class="screen hidden">
@@ -138,7 +142,8 @@
                 <h3>Jägermaister</h3>
             </div>
         </div>
-        <p id="char-select-status" style="font-size: 1.5em;">En attente de votre choix...</p>
+        <p id="char-select-status" style="font-size: 1.5em; min-height: 2em;">En attente de votre choix...</p>
+        <button id="confirm-char-btn" disabled onclick="window.game.confirmCharacterSelection()">Confirmer</button>
     </div>
 
     <div id="matchmaking-screen" class="screen hidden">
@@ -218,6 +223,7 @@
                 this.currentGameId = null;
                 this.gameListener = null;
                 this.playerNumber = null;
+                this.myCharId = null;
                 
                 this.players = {};
                 this.platforms = [
@@ -240,6 +246,7 @@
                     login: document.getElementById('login-screen'),
                     charSelect: document.getElementById('char-select-screen'),
                     charSelectStatus: document.getElementById('char-select-status'),
+                    confirmCharBtn: document.getElementById('confirm-char-btn'),
                     matchmaking: document.getElementById('matchmaking-screen'),
                     game: document.getElementById('game-container'),
                     gameOver: document.getElementById('game-over-screen'),
@@ -260,7 +267,7 @@
                 onAuthStateChanged(auth, user => {
                     if (user) {
                         this.currentUser = user;
-                        if(this.state !== 'GAMEOVER') this.setState('CHAR_SELECT');
+                        if(this.state === 'LOADING' || this.state === 'LOGIN') this.setState('CHAR_SELECT');
                     } else {
                         this.currentUser = null;
                         this.setState('LOGIN');
@@ -269,15 +276,19 @@
                 });
             }
 
-            async selectCharacter(charId) {
+            selectCharacter(charId) {
                 if (this.state !== 'CHAR_SELECT') return;
                 
+                this.myCharId = charId;
                 document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
                 document.getElementById(`char-${charId}`).classList.add('selected');
-                this.ui.charSelectStatus.textContent = `Vous avez choisi ${CHARACTERS[charId].name}. Recherche d'un adversaire...`;
-
-                this.myCharId = charId;
-                await this.startMatchmaking();
+                this.ui.confirmCharBtn.disabled = false;
+            }
+            
+            confirmCharacterSelection() {
+                if (!this.myCharId) return;
+                this.ui.charSelectStatus.textContent = `Vous avez choisi ${CHARACTERS[this.myCharId].name}.`;
+                this.startMatchmaking();
             }
 
             async startMatchmaking() {
@@ -315,7 +326,12 @@
                 }
                 this.cleanup();
                 this.setState('CHAR_SELECT');
+                this.resetCharSelectUI();
+            }
+            
+            resetCharSelectUI() {
                 this.ui.charSelectStatus.textContent = 'En attente de votre choix...';
+                this.ui.confirmCharBtn.disabled = true;
                 document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
             }
 
@@ -354,7 +370,6 @@
                     if (gameState.status === 'playing') {
                         if (this.state !== 'PLAYING') this.startGame(gameState);
                         
-                        // Merge remote state with local state carefully
                         if(!this.players.p1) this.players.p1 = new Player(gameState.p1, this);
                         else this.players.p1.syncState(gameState.p1);
                         
@@ -392,9 +407,7 @@
                 
                 this.checkHitCollisions();
                 
-                this.projectiles.forEach(p => p.update());
-                this.projectiles = this.projectiles.filter(p => p.active);
-                this.particles.forEach(p => p.update());
+                this.projectiles = this.projectiles.filter(p => p.update());
                 this.particles = this.particles.filter(p => p.life > 0);
                 
                 this.sendStateToFirestore(myPlayer);
@@ -403,7 +416,7 @@
             checkHitCollisions() {
                 const p1 = this.players.p1;
                 const p2 = this.players.p2;
-                if(!p1 || !p2) return;
+                if(!p1 || !p2 || !p1.char || !p2.char) return;
 
                 const check = (attacker, defender) => {
                     if (attacker.hitbox && attacker.isHittable(defender) && attacker.hitbox.collidesWith(defender.getHurtbox())) {
@@ -457,11 +470,11 @@
             }
 
             updateHUD() {
-                if (this.players.p1) {
+                if (this.players.p1 && this.players.p1.char) {
                     this.ui.p1Hud.damage.textContent = `${Math.floor(this.players.p1.damage)}%`;
                     this.ui.p1Hud.stocks.textContent = `P1 ${'❤️'.repeat(this.players.p1.stocks)}`;
                 }
-                if (this.players.p2) {
+                if (this.players.p2 && this.players.p2.char) {
                     this.ui.p2Hud.damage.textContent = `${Math.floor(this.players.p2.damage)}%`;
                     this.ui.p2Hud.stocks.textContent = `${'❤️'.repeat(this.players.p2.stocks)} P2`;
                 }
@@ -477,8 +490,7 @@
             async rematch() {
                 this.cleanup();
                 this.setState('CHAR_SELECT');
-                this.ui.charSelectStatus.textContent = 'En attente de votre choix...';
-                document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
+                this.resetCharSelectUI();
             }
 
             setupKeyboardListeners() {
@@ -487,7 +499,7 @@
                 window.onkeyup = e => {
                     this.keys[e.code] = false;
                     const myPlayer = this.playerNumber === 1 ? this.players.p1 : this.players.p2;
-                    if(myPlayer) myPlayer.canDoubleJump = true; // Reset double jump on key up
+                    if(myPlayer) myPlayer.canDoubleJump = true;
                 };
             }
 
@@ -533,7 +545,7 @@
             }
 
             update() {
-                if(!this.char) return; // Pas encore de personnage choisi
+                if(!this.char) return;
                 
                 if (Date.now() < this.invincibleUntil) this.action = 'invincible';
                 else if (this.action === 'hitstun' || this.action === 'invincible') this.action = 'idle';
@@ -542,7 +554,7 @@
                     this.x += this.vx;
                     this.y += this.vy;
                     this.vy += this.game.GRAVITY;
-                    this.vx *= 0.98; // Air friction when hit
+                    this.vx *= 0.98;
                     this.vy *= 0.99;
                 } else {
                     this.x += this.vx;
@@ -564,8 +576,8 @@
                 
                 this.updateAction();
 
-                if (this.y > this.game.canvas.height + 150 || this.x < -150 || this.x > this.game.canvas.width + 150) {
-                    if(this.uid === this.game.currentUser.uid) this.loseStock();
+                if (this.uid === this.game.currentUser.uid && (this.y > this.game.canvas.height + 150 || this.x < -150 || this.x > this.game.canvas.width + 150)) {
+                    this.loseStock();
                 }
             }
             
