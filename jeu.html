@@ -377,7 +377,6 @@
 </head>
 <body>
     <div class="game-container">
-        <!-- Écran de connexion -->
         <div class="login-screen" id="loginScreen">
             <h1>⚔️ Spell Duel</h1>
             <div class="login-form">
@@ -389,16 +388,13 @@
             </div>
         </div>
 
-        <!-- Écran de matchmaking -->
         <div class="matchmaking hidden" id="matchmakingScreen">
             <h2>🔍 Recherche d'adversaire...</h2>
             <div class="spinner"></div>
             <button onclick="cancelMatchmaking()" style="margin-top: 20px; padding: 10px 20px; background: #ff6b6b; border: none; border-radius: 5px; color: white; cursor: pointer;">Annuler</button>
         </div>
 
-        <!-- Interface de jeu -->
         <div class="game-interface hidden" id="gameInterface">
-            <!-- Stats des joueurs -->
             <div class="player-stats">
                 <div class="player-info">
                     <div class="player-name" id="enemyName">Adversaire</div>
@@ -427,19 +423,15 @@
                 </div>
             </div>
 
-            <!-- Champ de bataille -->
             <div class="battlefield" id="battlefield">
                 <div class="wizard enemy" id="enemyWizard">🧙‍♂️</div>
                 <div class="wizard player" id="playerWizard">🧙‍♀️</div>
             </div>
 
-            <!-- Main de sorts -->
             <div class="spell-hand" id="spellHand">
-                <!-- Les cartes seront générées dynamiquement -->
-            </div>
+                </div>
         </div>
 
-        <!-- Écran de fin de partie -->
         <div class="game-over hidden" id="gameOverScreen">
             <h2 id="gameResult">Victoire!</h2>
             <p id="gameResultText">Vous avez vaincu votre adversaire!</p>
@@ -452,17 +444,18 @@
         // Configuration Firebase (À REMPLACER avec votre config)
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, addDoc, query, where, orderBy, limit, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        // Importations Firestore mises à jour (onSnapshot, collection, query, where, limit, deleteDoc sont déjà importés ci-dessus)
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, addDoc, query, where, orderBy, limit, deleteDoc, updateDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         // REMPLACEZ cette configuration par la vôtre
         const firebaseConfig = {
-  apiKey: "AIzaSyBhyxeEHBKrhuECJKt2d7NwSN7lcv39IX0",
-  authDomain: "frieren-2-79e0c.firebaseapp.com",
-  projectId: "frieren-2-79e0c",
-  storageBucket: "frieren-2-79e0c.firebasestorage.app",
-  messagingSenderId: "861104473745",
-  appId: "1:861104473745:web:377da7b0daaf5570572130"
-};
+            apiKey: "AIzaSyBhyxeEHBKrhuECJKt2d7NwSN7lcv39IX0",
+            authDomain: "frieren-2-79e0c.firebaseapp.com",
+            projectId: "frieren-2-79e0c",
+            storageBucket: "frieren-2-79e0c.firebasestorage.app",
+            messagingSenderId: "861104473745",
+            appId: "1:861104473745:web:377da7b0daaf5570572130"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -572,7 +565,7 @@
             try {
                 console.log('Recherche d\'adversaire...');
                 
-                // Rechercher une partie en attente (sans orderBy pour éviter les erreurs d'index)
+                // Rechercher une partie en attente
                 const waitingGames = query(
                     collection(db, 'games'),
                     where('status', '==', 'waiting'),
@@ -790,10 +783,11 @@
                 // Envoyer l'état du jeu à Firebase
                 await updateGameState();
                 
-                // L'IA joue après un délai
-                setTimeout(() => {
-                    aiTurn();
-                }, 1500);
+                /*
+                LOGIQUE D'IA RETIRÉE: 
+                Le jeu est maintenant purement multijoueur. L'action de l'adversaire
+                sera gérée par son client et mise à jour via onSnapshot.
+                */
                 
             }, 1000);
         };
@@ -858,202 +852,4 @@
             
             // Vérifier les conditions de fin
             if (gameState.player.health <= 0 || gameState.enemy.health <= 0) {
-                const winner = gameState.player.health > 0 ? 'player' : 'enemy';
-                await endGame(winner);
-            }
-        }
-
-        // IA simple
-        function aiTurn() {
-            const spellKeys = Object.keys(spells);
-            const availableSpells = spellKeys.filter(key => spells[key].cost <= gameState.enemy.mana);
-            
-            if (availableSpells.length === 0) return;
-            
-            const chosenSpell = availableSpells[Math.floor(Math.random() * availableSpells.length)];
-            const spell = spells[chosenSpell];
-            
-            // L'ennemi lance le sort
-            gameState.enemy.mana -= spell.cost;
-            
-            // Animation
-            const enemyWizard = document.getElementById('enemyWizard');
-            enemyWizard.classList.add('casting');
-            setTimeout(() => enemyWizard.classList.remove('casting'), 800);
-            
-            // Créer un projectile
-            createProjectile(spell.icon, 'enemy');
-            
-            // Appliquer l'effet après un délai
-            setTimeout(async () => {
-                await applySpellEffect(spell, 'enemy');
-                updateUI();
-                await updateGameState();
-            }, 1000);
-        }
-
-        async function updateGameState() {
-            if (!currentGameId) return;
-            
-            try {
-                const gameDoc = await getDoc(doc(db, 'games', currentGameId));
-                const gameData = gameDoc.data();
-                
-                // Déterminer quel joueur nous sommes
-                const isPlayer1 = gameData.player1 === currentUser.uid;
-                
-                const updatedState = {
-                    ...gameData.gameState,
-                    [isPlayer1 ? 'player1' : 'player2']: gameState.player,
-                    [isPlayer1 ? 'player2' : 'player1']: gameState.enemy
-                };
-                
-                await updateDoc(doc(db, 'games', currentGameId), {
-                    gameState: updatedState
-                });
-            } catch (error) {
-                console.error('Erreur de mise à jour:', error);
-            }
-        }
-
-        function updateGameUI(serverGameState, gameData) {
-            if (!serverGameState || !gameData) return;
-            
-            console.log('Mise à jour UI, player1:', gameData.player1, 'player2:', gameData.player2, 'currentUser:', currentUser.uid);
-            
-            // Déterminer quel joueur nous sommes
-            const isPlayer1 = gameData.player1 === currentUser.uid;
-            
-            // Mettre à jour notre état local avec les données du serveur
-            gameState.player = serverGameState[isPlayer1 ? 'player1' : 'player2'];
-            gameState.enemy = serverGameState[isPlayer1 ? 'player2' : 'player1'];
-            
-            // Mettre à jour les noms des joueurs
-            document.getElementById('playerName').textContent = 'Vous';
-            document.getElementById('enemyName').textContent = 'Adversaire';
-            
-            updateUI();
-        }
-
-        function updateUI() {
-            // Mettre à jour les barres de vie et mana du joueur
-            updatePlayerStats('player', gameState.player);
-            updatePlayerStats('enemy', gameState.enemy);
-        }
-
-        function updatePlayerStats(playerType, stats) {
-            const prefix = playerType === 'player' ? 'player' : 'enemy';
-            
-            // Barre de vie
-            const healthFill = document.getElementById(`${prefix}HealthFill`);
-            const healthText = document.getElementById(`${prefix}HealthText`);
-            const healthPercent = (stats.health / stats.maxHealth) * 100;
-            
-            healthFill.style.width = `${healthPercent}%`;
-            healthText.textContent = `${stats.health}/${stats.maxHealth}`;
-            
-            // Barre de mana
-            const manaFill = document.getElementById(`${prefix}ManaFill`);
-            const manaText = document.getElementById(`${prefix}ManaText`);
-            const manaPercent = (stats.mana / stats.maxMana) * 100;
-            
-            manaFill.style.width = `${manaPercent}%`;
-            manaText.textContent = `${stats.mana}/${stats.maxMana}`;
-        }
-
-        function startGameTimer() {
-            let timeLeft = 180; // 3 minutes
-            
-            gameTimer = setInterval(() => {
-                timeLeft--;
-                
-                const minutes = Math.floor(timeLeft / 60);
-                const seconds = timeLeft % 60;
-                document.getElementById('gameTimer').textContent = 
-                    `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                
-                if (timeLeft <= 0) {
-                    clearInterval(gameTimer);
-                    // Fin du temps - le joueur avec le plus de PV gagne
-                    const winner = gameState.player.health > gameState.enemy.health ? 'player' : 'enemy';
-                    endGame(winner);
-                }
-            }, 1000);
-        }
-
-        async function endGame(winner) {
-            if (gameTimer) {
-                clearInterval(gameTimer);
-                gameTimer = null;
-            }
-            
-            if (gameListener) {
-                gameListener();
-                gameListener = null;
-            }
-            
-            const isVictory = winner === 'player';
-            
-            // Mettre à jour les statistiques du joueur
-            try {
-                const userDoc = doc(db, 'users', currentUser.uid);
-                const userSnapshot = await getDoc(userDoc);
-                const userData = userSnapshot.data();
-                
-                const newStats = {
-                    wins: userData.wins + (isVictory ? 1 : 0),
-                    losses: userData.losses + (isVictory ? 0 : 1)
-                };
-                
-                await updateDoc(userDoc, newStats);
-            } catch (error) {
-                console.error('Erreur de mise à jour des stats:', error);
-            }
-            
-            // Marquer la partie comme terminée
-            if (currentGameId) {
-                try {
-                    await updateDoc(doc(db, 'games', currentGameId), {
-                        status: 'finished',
-                        winner: winner,
-                        endTime: new Date()
-                    });
-                } catch (error) {
-                    console.error('Erreur de fin de partie:', error);
-                }
-            }
-            
-            // Afficher l'écran de fin
-            const gameOverScreen = document.getElementById('gameOverScreen');
-            const gameResult = document.getElementById('gameResult');
-            const gameResultText = document.getElementById('gameResultText');
-            
-            if (isVictory) {
-                gameResult.textContent = '🏆 Victoire!';
-                gameResult.className = 'victory';
-                gameResultText.textContent = 'Vous avez vaincu votre adversaire!';
-            } else {
-                gameResult.textContent = '💀 Défaite!';
-                gameResult.className = 'defeat';
-                gameResultText.textContent = 'Vous avez été vaincu...';
-            }
-            
-            gameOverScreen.classList.remove('hidden');
-        }
-
-        // Import manquant pour updateDoc
-        import { updateDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
-        // Gestion de la déconnexion (optionnel)
-        window.logout = function() {
-            signOut(auth);
-        };
-
-        // Initialisation
-        document.addEventListener('DOMContentLoaded', () => {
-            // Le jeu se charge automatiquement via onAuthStateChanged
-        });
-
-    </script>
-</body>
-</html>
+                // Le gagnant sera déterminé par l'état
