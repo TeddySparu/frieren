@@ -14,7 +14,33 @@
     body{background:linear-gradient(90deg,magenta,lime,cyan,yellow);font-family:"Comic Sans MS",cursive;color:#00f;margin:0;text-align:center}
     header{background:repeating-linear-gradient(45deg,red,red 10px,blue 10px,blue 20px);color:#0f0;padding:20px;border:5px dotted orange}
     h1{font-size:48px;text-shadow:3px 3px yellow;transform:skewX(-10deg)}
-    nav a{margin:0 10px;color:#f0f;font-size:22px;background:#0ff;padding:5px 10px;border:3px dashed purple;cursor:pointer;text-decoration:none}
+    
+    /* STYLE DES BOUTONS DE NAVIGATION CORRIGÉ */
+    nav a{
+      display: inline-block;
+      margin: 5px 8px;
+      color: #ff00ff; /* Magenta */
+      font-size: 20px;
+      font-weight: bold;
+      background: #00ffff; /* Cyan */
+      padding: 8px 15px;
+      border: 4px solid #ff00ff; /* Bordure Magenta */
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      text-shadow: 2px 2px #000; /* Ombre noire pour le contraste */
+      box-shadow: 4px 4px 0px #000000; /* Effet 3D */
+      transition: all 0.1s;
+      transform: skewX(-5deg); /* Légère inclinaison pour le style */
+      text-transform: uppercase;
+    }
+    nav a:hover {
+      background: #ffff00; /* Jaune au survol */
+      color: #ff0000; /* Rouge au survol */
+      transform: translateY(-2px) skewX(-5deg) scale(1.05); /* Effet Pop */
+      box-shadow: 6px 6px 0px #ff00ff; /* Ombre Pop Magenta */
+    }
+    
     .card{margin:20px;padding:20px;border:7px ridge pink;background:linear-gradient(45deg,#f60,#0fc,#f0f);font-size:20px;display:none}
     .card.active{display:block}
     .auth-container{display:flex;justify-content:center;gap:20px;flex-wrap:wrap}
@@ -135,7 +161,7 @@
     <header>
       <h1>🔥 L'Ordre Sacré de Frieren & Jägermeister 🔥</h1>
 
-
+      <nav>
         <a onclick="show('home')">Accueil</a>
         <a onclick="show('creed')">Préceptes</a>
         <a onclick="show('rituals')">Rituels</a>
@@ -252,7 +278,6 @@
     </footer>
   </div>
 
-  <!-- Modals -->
   <div id="mute-modal" class="modal hidden">
     <div class="modal-content">
       <h3>🔇 Muter Utilisateur</h3>
@@ -893,8 +918,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
