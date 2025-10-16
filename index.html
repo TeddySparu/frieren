@@ -14,6 +14,7 @@
     body{background:linear-gradient(90deg,magenta,lime,cyan,yellow);font-family:"Comic Sans MS",cursive;color:#00f;margin:0;text-align:center}
     header{background:repeating-linear-gradient(45deg,red,red 10px,blue 10px,blue 20px);color:#0f0;padding:20px;border:5px dotted orange}
     h1{font-size:48px;text-shadow:3px 3px yellow;transform:skewX(-10deg)}
+    .secret-link{cursor:pointer;user-select:none}
     
     /* STYLE DES BOUTONS DE NAVIGATION CORRIGÉ */
     nav a{
@@ -159,7 +160,7 @@
   
   <div id="app" class="hidden">
     <header>
-      <h1>🔥 L'Ordre Sacré de Frieren & Jägermeister 🔥</h1>
+      <h1>🔥 L'Ordre de Frieren <span class="secret-link" onclick="window.location.href='autism.html'">&</span> Jägermeister 🔥</h1>
 
       <nav>
         <a onclick="show('home')">Accueil</a>
@@ -167,6 +168,7 @@
         <a onclick="show('rituals')">Rituels</a>
         <a onclick="show('offerings')">Offrandes</a>
         <a onclick="show('illumination')">🌟 Illumination 🌟</a>
+        <a href="nouveau_jeu.html">Jeu</a>
         <a onclick="show('chat')" id="chat-nav" class="hidden">Chat</a>
         <a onclick="show('admin')" id="admin-nav" class="hidden">Admin 👑</a>
         <a onclick="show('auth')" id="auth-nav">Connexion</a>
@@ -241,7 +243,7 @@
         <div class="admin-panel">
           <h3>👑 Panel Admin</h3>
           <button onclick="clearAllMessages()">🗑️ Vider Chat</button>
-          <button onclick="showUserManagement()">👥 Mute Utilisateurs</button>
+          <button onclick="showUserManagement()">👥 Gérer Utilisateurs</button>
         </div>
       </div>
 
@@ -278,10 +280,18 @@
     </footer>
   </div>
 
-  <div id="mute-modal" class="modal hidden">
+  <div id="user-admin-modal" class="modal hidden">
     <div class="modal-content">
-      <h3>🔇 Muter Utilisateur</h3>
-      <p id="mute-user-info"></p>
+      <h3>👑 Gérer Utilisateur</h3>
+      <p id="user-admin-info"></p>
+      <input type="text" id="new-username" placeholder="Nouveau pseudo">
+      <button onclick="changeUsername()">Changer Pseudo</button>
+      <hr>
+      <p><strong>Contrôle du compte :</strong></p>
+      <button onclick="impersonateUser()">Prendre le contrôle</button>
+      <button onclick="stopImpersonating()">Arrêter le contrôle</button>
+      <hr>
+      <p><strong>Mute :</strong></p>
       <input type="text" id="mute-reason" placeholder="Raison (optionnel)">
       <select id="mute-duration">
         <option value="300">5 minutes</option>
@@ -291,11 +301,10 @@
         <option value="604800">7 jours</option>
         <option value="permanent">Permanent</option>
       </select>
-      <div>
-        <button onclick="confirmMute()">🔇 Mute</button>
-        <button onclick="unmuteUser()">🔊 Démute</button>
-        <button onclick="closeModal()">❌ Annuler</button>
-      </div>
+      <button onclick="confirmMute()">🔇 Mute</button>
+      <button onclick="unmuteUser()">🔊 Démute</button>
+      <hr>
+      <button onclick="closeModal()">❌ Fermer</button>
     </div>
   </div>
 
@@ -320,14 +329,14 @@
       apiKey: "AIzaSyBhyxeEHBKrhuECJKt2d7NwSN7lcv39IX0",
       authDomain: "frieren-2-79e0c.firebaseapp.com",
       projectId: "frieren-2-79e0c",
-      storageBucket: "frieren-2-79e0c.firebasestorage.app",
+      storageBucket: "frieren-2-79e0c.appspot.com",
       messagingSenderId: "861104473745",
       appId: "1:861104473745:web:377da7b0daaf5570572130"
     };
 
     const ADMIN_UID = '5yv18zQAJBZZUIwKbFiURFQeFit2';
     let currentUser = null, isAdmin = false, messagesListener = null, usersListener = null;
-    let currentMuteTarget = null, currentEditId = null;
+    let currentAdminTarget = null, currentEditId = null, impersonatedUser = null;
     let app, auth, db, storage;
     
     // Compteur de prophéties
@@ -413,7 +422,6 @@
         storage = getStorage(app);
         
         console.log('Firebase initialized successfully');
-        console.log('Storage bucket:', storage.app.options.storageBucket);
         
         onAuthStateChanged(auth, async (user) => {
           $('loading').classList.add('hidden');
@@ -444,12 +452,6 @@
       $('user-info').classList.remove('hidden');
       
       if (isAdmin) $('admin-nav').classList.remove('hidden');
-      
-      // Afficher/masquer le panel admin des prophéties
-      const adminProphecyPanel = document.getElementById('admin-prophecy-panel');
-      if (adminProphecyPanel) {
-        adminProphecyPanel.style.display = isAdmin ? 'block' : 'none';
-      }
       
       const name = user.displayName || user.email.split('@')[0];
       $('welcome-msg').textContent = `🌟 ${name}${isAdmin ? ' 👑' : ''} - Connecté !`;
@@ -528,7 +530,6 @@
 
       $('image-input').addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
-          console.log('Files selected:', e.target.files.length);
           sendImages(Array.from(e.target.files));
         }
       });
@@ -571,7 +572,7 @@
       `;
       
       if (msg.type === 'image' && msg.imageUrl) {
-        content += `<img src="${msg.imageUrl}" alt="${msg.fileName || 'Image'}" onclick="window.open('${msg.imageUrl}','_blank')" onerror="this.style.display='none'; console.error('Image failed to load:', '${msg.imageUrl}')">`;
+        content += `<img src="${msg.imageUrl}" alt="${msg.fileName || 'Image'}" onclick="window.open('${msg.imageUrl}','_blank')">`;
         if (msg.fileName) {
           content += `<div style="font-size:12px;color:#666;margin-top:5px;">📎 ${msg.fileName}</div>`;
         }
@@ -590,14 +591,14 @@
     }
 
     async function sendMessage() {
-      if (!currentUser) return;
-      
+      const userToSendAs = impersonatedUser || currentUser;
+      if (!userToSendAs) return;
+
       const input = $('message-input');
       const text = input.value.trim();
       if (!text) return;
 
-      // Check mute
-      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+      const userDoc = await getDoc(doc(db, 'users', userToSendAs.uid));
       if (userDoc.exists() && userDoc.data().mutedUntil) {
         const muteEnd = userDoc.data().mutedUntil.toDate();
         if (muteEnd > new Date()) {
@@ -609,11 +610,11 @@
       try {
         await addDoc(collection(db, 'messages'), {
           text,
-          username: currentUser.displayName || currentUser.email.split('@')[0],
-          userId: currentUser.uid,
+          username: userDoc.data().username || userToSendAs.email.split('@')[0],
+          userId: userToSendAs.uid,
           timestamp: serverTimestamp(),
           type: 'text',
-          isAdmin
+          isAdmin: userDoc.data().isAdmin || false
         });
         input.value = '';
       } catch (error) {
@@ -623,30 +624,22 @@
     }
 
     async function sendImages(files) {
-      if (!currentUser) {
+      const userToSendAs = impersonatedUser || currentUser;
+      if (!userToSendAs) {
         showError('Vous devez être connecté pour envoyer des images');
         return;
       }
 
-      console.log('Attempting to send', files.length, 'images');
-
-      // Check mute
-      try {
-        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-        if (userDoc.exists() && userDoc.data().mutedUntil) {
-          const muteEnd = userDoc.data().mutedUntil.toDate();
-          if (muteEnd > new Date()) {
-            showError(`Vous êtes mute jusqu'à ${muteEnd.toLocaleString()}`);
-            return;
-          }
+      const userDoc = await getDoc(doc(db, 'users', userToSendAs.uid));
+      if (userDoc.exists() && userDoc.data().mutedUntil) {
+        const muteEnd = userDoc.data().mutedUntil.toDate();
+        if (muteEnd > new Date()) {
+          showError(`Vous êtes mute jusqu'à ${muteEnd.toLocaleString()}`);
+          return;
         }
-      } catch (error) {
-        console.error('Error checking mute status:', error);
       }
       
       for (const file of files) {
-        console.log('Processing file:', file.name, 'Size:', file.size, 'Type:', file.type);
-        
         if (file.size > 5 * 1024 * 1024) {
           showError(`${file.name} trop lourd (max 5MB)`);
           continue;
@@ -658,46 +651,29 @@
         }
         
         try {
-          // Create unique filename
           const timestamp = Date.now();
           const randomId = Math.random().toString(36).substr(2, 9);
           const fileExtension = file.name.split('.').pop();
           const fileName = `${timestamp}_${randomId}.${fileExtension}`;
-          const path = `images/${currentUser.uid}/${fileName}`;
+          const path = `images/${userToSendAs.uid}/${fileName}`;
           
-          console.log('Uploading to path:', path);
-          
-          // Upload to Firebase Storage
           const storageRef = ref(storage, path);
           const snapshot = await uploadBytes(storageRef, file);
-          console.log('Upload successful, snapshot:', snapshot);
-          
-          // Get download URL
           const url = await getDownloadURL(snapshot.ref);
-          console.log('Download URL obtained:', url);
           
-          // Save message to Firestore
-          const messageData = {
+          await addDoc(collection(db, 'messages'), {
             imageUrl: url,
             fileName: file.name,
             fileType: file.type,
             storagePath: path,
-            username: currentUser.displayName || currentUser.email.split('@')[0],
-            userId: currentUser.uid,
+            username: userDoc.data().username || userToSendAs.email.split('@')[0],
+            userId: userToSendAs.uid,
             timestamp: serverTimestamp(),
             type: 'image',
-            isAdmin
-          };
-          
-          console.log('Saving message to Firestore:', messageData);
-          
-          await addDoc(collection(db, 'messages'), messageData);
-          console.log('Message saved successfully');
-          
+            isAdmin: userDoc.data().isAdmin || false
+          });
         } catch (error) {
-          console.error('Detailed error uploading image:', error);
-          console.error('Error code:', error.code);
-          console.error('Error message:', error.message);
+          console.error('Error uploading image:', error);
           showError(`Erreur upload ${file.name}: ${error.message}`);
         }
       }
@@ -712,7 +688,6 @@
         await deleteDoc(doc(db, 'messages', id));
         showSuccess('Message supprimé');
       } catch (error) {
-        console.error('Error deleting message:', error);
         showError('Erreur suppression: ' + error.message);
       }
     }
@@ -726,7 +701,6 @@
           $('edit-modal').classList.remove('hidden');
         }
       } catch (error) {
-        console.error('Error editing message:', error);
         showError('Erreur: ' + error.message);
       }
     }
@@ -744,7 +718,6 @@
         closeModal();
         showSuccess('Message modifié');
       } catch (error) {
-        console.error('Error updating message:', error);
         showError('Erreur: ' + error.message);
       }
     }
@@ -756,7 +729,6 @@
         await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
         showSuccess('Chat vidé');
       } catch (error) {
-        console.error('Error clearing messages:', error);
         showError('Erreur: ' + error.message);
       }
     }
@@ -779,7 +751,7 @@
             <br><small>${doc.id}</small>
             <span style="color:red;">${muteText}</span>
           </div>
-          <button onclick="openMute('${doc.id}', '${user.username || 'Anonyme'}')">${isMuted ? '🔊 Gérer' : '🔇 Mute'}</button>
+          <button onclick="openUserAdmin('${doc.id}', '${user.username || 'Anonyme'}')">👑 Gérer</button>
         `;
         list.appendChild(div);
       });
@@ -787,16 +759,43 @@
       show('user-management');
     }
 
-    function openMute(userId, username) {
-      if (userId === ADMIN_UID) return showError('Impossible de mute un admin');
-      currentMuteTarget = userId;
-      $('mute-user-info').textContent = `Utilisateur: ${username}`;
-      $('mute-reason').value = '';
-      $('mute-modal').classList.remove('hidden');
+    function openUserAdmin(userId, username) {
+      if (userId === ADMIN_UID) return showError('Impossible de gérer un admin');
+      currentAdminTarget = userId;
+      $('user-admin-info').textContent = `Utilisateur: ${username}`;
+      $('user-admin-modal').classList.remove('hidden');
+    }
+
+    async function changeUsername() {
+      if (!currentAdminTarget) return;
+      const newUsername = $('new-username').value.trim();
+      if (!newUsername) return showError('Pseudo vide');
+
+      try {
+        await updateDoc(doc(db, 'users', currentAdminTarget), { username: newUsername });
+        showSuccess('Pseudo changé');
+        closeModal();
+        showUserManagement();
+      } catch (error) {
+        showError('Erreur: ' + error.message);
+      }
+    }
+
+    async function impersonateUser() {
+      if (!currentAdminTarget) return;
+      const userDoc = await getDoc(doc(db, 'users', currentAdminTarget));
+      impersonatedUser = { uid: currentAdminTarget, ...userDoc.data() };
+      showSuccess(`Vous contrôlez maintenant ${impersonatedUser.username}`);
+      closeModal();
+    }
+
+    function stopImpersonating() {
+      impersonatedUser = null;
+      showSuccess('Vous avez repris le contrôle de votre compte');
     }
 
     async function confirmMute() {
-      if (!currentMuteTarget) return;
+      if (!currentAdminTarget) return;
       
       const duration = $('mute-duration').value;
       const reason = $('mute-reason').value || 'Aucune raison';
@@ -809,40 +808,36 @@
       }
       
       try {
-        await updateDoc(doc(db, 'users', currentMuteTarget), {
+        await updateDoc(doc(db, 'users', currentAdminTarget), {
           mutedUntil: muteUntil,
           muteReason: reason,
           mutedBy: currentUser.uid
         });
-        closeModal();
         showSuccess('Utilisateur mute');
         showUserManagement();
       } catch (error) {
-        console.error('Error muting user:', error);
         showError('Erreur mute: ' + error.message);
       }
     }
 
     async function unmuteUser() {
-      if (!currentMuteTarget) return;
+      if (!currentAdminTarget) return;
       try {
-        await updateDoc(doc(db, 'users', currentMuteTarget), {
+        await updateDoc(doc(db, 'users', currentAdminTarget), {
           mutedUntil: null,
           muteReason: null,
           mutedBy: null
         });
-        closeModal();
         showSuccess('Utilisateur démute');
         showUserManagement();
       } catch (error) {
-        console.error('Error unmuting user:', error);
         showError('Erreur: ' + error.message);
       }
     }
 
     function closeModal() {
       document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
-      currentMuteTarget = null;
+      currentAdminTarget = null;
       currentEditId = null;
     }
 
@@ -860,7 +855,6 @@
     }
 
     function showError(msg) {
-      console.error('Error:', msg);
       const err = $('auth-error');
       err.textContent = msg;
       err.classList.remove('hidden');
@@ -868,7 +862,6 @@
     }
 
     function showSuccess(msg) {
-      console.log('Success:', msg);
       const div = document.createElement('div');
       div.className = 'success';
       div.textContent = msg;
@@ -877,7 +870,6 @@
       setTimeout(() => div.remove(), 3000);
     }
 
-    // Global functions
     window.show = show;
     window.logout = logout;
     window.sendMessage = sendMessage;
@@ -886,31 +878,25 @@
     window.confirmEdit = confirmEdit;
     window.clearAllMessages = clearAllMessages;
     window.showUserManagement = showUserManagement;
-    window.openMute = openMute;
+    window.openUserAdmin = openUserAdmin;
+    window.changeUsername = changeUsername;
+    window.impersonateUser = impersonateUser;
+    window.stopImpersonating = stopImpersonating;
     window.confirmMute = confirmMute;
     window.unmuteUser = unmuteUser;
     window.closeModal = closeModal;
     window.generateProphecy = generateProphecy;
 
-    // Event listeners
     window.addEventListener('beforeunload', async () => {
       if (currentUser) {
-        try {
-          await setDoc(doc(db, 'users', currentUser.uid), { status: 'offline' }, { merge: true });
-        } catch (error) {
-          console.error('Error setting offline status:', error);
-        }
+        await setDoc(doc(db, 'users', currentUser.uid), { status: 'offline' }, { merge: true });
       }
     });
 
     document.addEventListener('visibilitychange', async () => {
       if (currentUser) {
-        try {
-          const status = document.hidden ? 'offline' : 'online';
-          await setDoc(doc(db, 'users', currentUser.uid), { status }, { merge: true });
-        } catch (error) {
-          console.error('Error updating visibility status:', error);
-        }
+        const status = document.hidden ? 'offline' : 'online';
+        await setDoc(doc(db, 'users', currentUser.uid), { status }, { merge: true });
       }
     });
 
