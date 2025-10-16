@@ -68,6 +68,8 @@
             opacity: 0.5;
             cursor: not-allowed;
             box-shadow: none;
+            background: transparent;
+            color: #f0f;
         }
 
         #character-select { display: flex; gap: 40px; }
@@ -144,7 +146,7 @@
             </div>
         </div>
         <p id="char-select-status" style="font-size: 1.5em; min-height: 2em;">En attente de votre choix...</p>
-        <button id="confirm-char-btn" disabled onclick="window.game.confirmCharacterSelection()">Confirmer et Chercher une partie</button>
+        <button id="confirm-char-btn" disabled onclick="window.game.confirmCharacterSelection()">Rechercher une partie</button>
     </div>
 
     <div id="matchmaking-screen" class="screen hidden">
@@ -259,21 +261,13 @@
             
             setState(newState) {
                 this.state = newState;
-                // Cache tous les écrans
                 for (const key in this.ui) {
                     if (this.ui[key].classList && !this.ui[key].id.includes('hud')) {
                         this.ui[key].classList.add('hidden');
                     }
                 }
-                // Affiche le bon écran
-                switch(newState) {
-                    case 'LOADING': this.ui.loading.classList.remove('hidden'); break;
-                    case 'LOGIN': this.ui.login.classList.remove('hidden'); break;
-                    case 'CHAR_SELECT': this.ui.charSelect.classList.remove('hidden'); break;
-                    case 'MATCHMAKING': this.ui.matchmaking.classList.remove('hidden'); break;
-                    case 'PLAYING': this.ui.game.classList.remove('hidden'); break;
-                    case 'GAMEOVER': this.ui.gameOver.classList.remove('hidden'); break;
-                }
+                const screenKey = newState.toLowerCase().split('_')[0];
+                if(this.ui[screenKey]) this.ui[screenKey].classList.remove('hidden');
             }
 
             authCheck() {
@@ -301,7 +295,6 @@
             
             confirmCharacterSelection() {
                 if (!this.myCharId) return;
-                this.ui.charSelectStatus.textContent = `Personnage choisi. En attente...`;
                 this.ui.confirmCharBtn.disabled = true;
                 this.startMatchmaking();
             }
@@ -319,13 +312,13 @@
                         this.playerNumber = 2;
                         await updateDoc(doc(db, "ultimate-brawl-games", this.currentGameId), {
                             "p2.uid": this.currentUser.uid,
+                            "p2.username": this.currentUser.displayName || "Joueur 2",
                             "p2.charId": this.myCharId,
                             status: "playing",
                             lastUpdate: serverTimestamp()
                         });
                         this.listenToGame();
                     } else {
-                        // C'est notre propre partie, on attend que quelqu'un rejoigne
                         this.currentGameId = gameDoc.id;
                         this.playerNumber = 1;
                         this.listenToGame();
@@ -370,6 +363,7 @@
                 const spawnX = playerNum === 1 ? this.canvas.width / 4 : (this.canvas.width / 4) * 3;
                 return {
                     uid: uid,
+                    username: playerNum === 1 ? (this.currentUser.displayName || "Joueur 1") : null,
                     charId: charId,
                     x: spawnX, y: 100, vx: 0, vy: 0,
                     damage: 0, stocks: 3, facing: playerNum === 1 ? 1 : -1,
@@ -422,7 +416,9 @@
                 
                 const myPlayer = this.playerNumber === 1 ? this.players.p1 : this.players.p2;
                 
-                myPlayer.handleControls(this.keys);
+                if (myPlayer.uid === this.currentUser.uid) {
+                    myPlayer.handleControls(this.keys);
+                }
                 
                 Object.values(this.players).forEach(p => p.update());
                 
@@ -553,7 +549,7 @@
             }
 
             syncState(state) {
-                if(!state.charId && this.charId) return; // Don't sync if new state is missing char but we have one
+                if(!state.charId && this.charId) return;
                 this.charId = state.charId;
                 if(this.charId) this.char = CHARACTERS[state.charId];
                 Object.assign(this, state);
@@ -561,7 +557,7 @@
 
             getState() {
                 return {
-                    uid: this.uid, charId: this.charId, x: this.x, y: this.y,
+                    uid: this.uid, username: this.username, charId: this.charId, x: this.x, y: this.y,
                     vx: this.vx, vy: this.vy, damage: this.damage, stocks: this.stocks,
                     facing: this.facing, action: this.action, actionFrame: this.actionFrame,
                     jumpsLeft: this.jumpsLeft, isGrounded: this.isGrounded, invincibleUntil: this.invincibleUntil
@@ -638,7 +634,7 @@
                 this.actionFrame = attack.duration + (attack.startup || 0);
                 
                 setTimeout(() => {
-                    if (this.action !== `${type}_attack`) return; // Action was interrupted
+                    if (this.action !== `${type}_attack`) return;
                     this.hitbox = new Hitbox(this, attack);
                 }, (attack.startup || 0) * (1000/60));
             }
@@ -690,11 +686,19 @@
                     ctx.globalAlpha = 0.5;
                 }
                 
+                // Dessin du personnage
                 ctx.fillStyle = this.char.color;
                 ctx.fillRect(this.x, this.y, this.char.size.w, this.char.size.h);
                 
+                // Dessin du pseudo
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = '16px Orbitron';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.username || '', this.x + this.char.size.w / 2, this.y - 10);
+                
                 ctx.restore();
 
+                // Affichage de la hitbox (uniquement pour le joueur local pour le debug)
                 if (this.hitbox && this.uid === this.game.currentUser.uid) {
                     ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
                     ctx.fillRect(this.hitbox.x, this.hitbox.y, this.hitbox.w, this.hitbox.h);
@@ -727,13 +731,17 @@
                 this.size = Math.random() * 5 + 2;
                 this.color = `hsl(${Math.random() * 50 + 10}, 100%, 50%)`;
             }
-            update() { this.x += this.vx; this.y += this.vy; this.life--; }
+            update() { this.x += this.vx; this.y += this.vy; this.life--; return this.life > 0; }
             draw(ctx) {
                 ctx.fillStyle = this.color;
                 ctx.globalAlpha = this.life / 30;
                 ctx.fillRect(this.x, this.y, this.size, this.size);
                 ctx.globalAlpha = 1;
             }
+        }
+        
+        class Projectile {
+            // (La logique des projectiles peut être ajoutée ici si nécessaire pour Frieren)
         }
 
         window.game = new Game();
