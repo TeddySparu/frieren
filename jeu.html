@@ -49,6 +49,7 @@
             color: #00ffea;
             cursor: pointer;
             transition: all 0.3s;
+            margin-top: 20px;
         }
         .screen button:hover {
             background: #00ffea;
@@ -80,6 +81,7 @@
             align-items: flex-end;
             gap: 10px;
             padding: 10px;
+            height: 160px;
         }
         
         .card {
@@ -95,13 +97,18 @@
             cursor: pointer;
             transition: all 0.3s;
             position: relative;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
         .card:hover {
             transform: translateY(-20px) scale(1.1);
             border-color: #00ffea;
         }
-        .card .cost { position: absolute; top: 5px; left: 5px; font-size: 1.2em; }
-        .card .power { position: absolute; bottom: 5px; right: 5px; font-size: 1.2em; }
+        .card.playable {
+            border-color: #00ffea;
+            box-shadow: 0 0 15px #00ffea;
+        }
+        .card .cost { position: absolute; top: 5px; left: 5px; font-size: 1.2em; font-weight: bold; color: yellow; text-shadow: 0 0 5px #000; }
+        .card .power { position: absolute; bottom: 5px; right: 5px; font-size: 1.2em; font-weight: bold; color: #ff4d4d; text-shadow: 0 0 5px #000; }
         .card .name { font-size: 0.9em; text-align: center; }
         .card .art { flex-grow: 1; font-size: 2em; display:flex; align-items:center; justify-content:center; }
 
@@ -112,21 +119,29 @@
             padding: 20px;
             border-top: 2px solid #00ffea;
             border-bottom: 2px solid #00ffea;
+            background: rgba(0, 50, 50, 0.2);
         }
 
         .location {
-            height: 180px;
+            height: 200px;
             background: rgba(0, 255, 234, 0.1);
             border: 2px dashed #00ffea;
             border-radius: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: space-between;
             padding: 10px;
+            transition: all 0.3s;
         }
-        .location-name { font-size: 1.1em; margin-bottom: 5px; }
-        .location-power { font-size: 1.5em; }
-        .cards-in-location { display: flex; gap: 5px; margin-top: 10px; }
+        .location.highlight {
+            background: rgba(0, 255, 234, 0.3);
+            border-style: solid;
+        }
+        .location-name { font-size: 1.1em; margin-bottom: 5px; text-align: center; }
+        .location-power { font-size: 1.5em; font-weight: bold; }
+        .cards-in-location { display: flex; gap: 5px; height: 50px; align-items: center; }
+        .mini-card { width: 30px; height: 42px; background: #2c3e50; border: 1px solid #00ffea; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.8em; }
 
         .game-info {
             position: absolute;
@@ -136,6 +151,9 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
+            border-radius: 10px;
         }
         .game-info div { font-size: 1.2em; }
 
@@ -144,6 +162,7 @@
             top: 50%;
             right: 20px;
             transform: translateY(-50%);
+            font-size: 1.5em !important;
         }
         
     </style>
@@ -168,26 +187,26 @@
         
         <div class="play-area">
             <div id="location-1" class="location">
-                <div class="location-name">Nébuleuse du Chaos</div>
+                <div class="location-name">Nébuleuse</div>
                 <div class="location-power" id="loc1-opponent-power">0</div>
                 <div id="loc1-opponent-cards" class="cards-in-location"></div>
-                <hr style="width:100%;">
+                <hr style="width:100%; border-color: #00ffea;">
                 <div id="loc1-player-cards" class="cards-in-location"></div>
                 <div class="location-power" id="loc1-player-power">0</div>
             </div>
             <div id="location-2" class="location">
-                <div class="location-name">Anomalie Temporelle</div>
+                <div class="location-name">Anomalie</div>
                 <div class="location-power" id="loc2-opponent-power">0</div>
                 <div id="loc2-opponent-cards" class="cards-in-location"></div>
-                <hr style="width:100%;">
+                <hr style="width:100%; border-color: #00ffea;">
                 <div id="loc2-player-cards" class="cards-in-location"></div>
                 <div class="location-power" id="loc2-player-power">0</div>
             </div>
             <div id="location-3" class="location">
-                <div class="location-name">Singularité Énergétique</div>
+                <div class="location-name">Singularité</div>
                 <div class="location-power" id="loc3-opponent-power">0</div>
                 <div id="loc3-opponent-cards" class="cards-in-location"></div>
-                <hr style="width:100%;">
+                <hr style="width:100%; border-color: #00ffea;">
                 <div id="loc3-player-cards" class="cards-in-location"></div>
                 <div class="location-power" id="loc3-player-power">0</div>
             </div>
@@ -208,12 +227,13 @@
     <div id="game-over-screen" class="screen hidden">
         <h1 id="game-result"></h1>
         <button onclick="startMatchmaking()">Rejouer</button>
+        <a href="index.html" style="text-decoration: none;"><button>Menu Principal</button></a>
     </div>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, doc, setDoc, onSnapshot, collection, query, where, limit, getDocs, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, doc, setDoc, onSnapshot, collection, query, where, limit, getDocs, updateDoc, deleteDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         
         const firebaseConfig = {
           apiKey: "AIzaSyBhyxeEHBKrhuECJKt2d7NwSN7lcv39IX0",
@@ -238,10 +258,11 @@
             { id: 2, name: "Drone de Défense", cost: 2, power: 3, art: "🛰️" },
             { id: 3, name: "Amiral de Flotte", cost: 3, power: 4, art: "👨‍✈️" },
             { id: 4, name: "Vaisseau Amiral", cost: 6, power: 10, art: "🚀" },
-            // ... Ajoutez plus de cartes
+            { id: 5, name: "Mécha de Combat", cost: 4, power: 6, art: "🤖" },
+            { id: 6, name: "Technicien Agile", cost: 1, power: 1, art: "🔧" },
+            { id: 7, name: "Croiseur Lourd", cost: 5, power: 8, art: "🛸" },
         ];
 
-        // GESTION DE L'ÉTAT D'AUTH
         onAuthStateChanged(auth, user => {
             if (user) {
                 currentUser = user;
@@ -249,13 +270,15 @@
                 startMatchmaking();
             } else {
                 document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('matchmaking-screen').classList.add('hidden');
+                document.getElementById('game-board').classList.add('hidden');
             }
         });
 
-        // MATCHMAKING
         window.startMatchmaking = async () => {
             document.getElementById('matchmaking-screen').classList.remove('hidden');
             document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('game-board').classList.add('hidden');
 
             const q = query(collection(db, "ccc-games"), where("status", "==", "waiting"), limit(1));
             const querySnapshot = await getDocs(q);
@@ -265,102 +288,115 @@
                 if (gameDoc.data().player1 !== currentUser.uid) {
                     currentGameId = gameDoc.id;
                     playerNumber = 2;
-                    await updateDoc(doc(db, "ccc-games", currentGameId), {
+                    
+                    const batch = writeBatch(db);
+                    const gameRef = doc(db, "ccc-games", currentGameId);
+                    
+                    const p1Deck = shuffleDeck();
+                    const p2Deck = shuffleDeck();
+
+                    batch.update(gameRef, {
                         player2: currentUser.uid,
-                        status: "playing"
+                        status: "playing",
+                        'player1State.deck': p1Deck,
+                        'player1State.hand': p1Deck.splice(0,3),
+                        'player2State.deck': p2Deck,
+                        'player2State.hand': p2Deck.splice(0,3),
                     });
-                    startGame();
+                    
+                    await batch.commit();
+                    listenToGame();
                 }
             } else {
-                const newGame = createNewGameState();
-                const gameRef = await addDoc(collection(db, "ccc-games"), newGame);
-                currentGameId = gameRef.id;
+                const newGameRef = doc(collection(db, "ccc-games"));
+                currentGameId = newGameRef.id;
                 playerNumber = 1;
+                await setDoc(newGameRef, createNewGameState());
                 listenToGame();
             }
         };
         
         window.cancelMatchmaking = async () => {
+            if (gameListener) gameListener();
             if (currentGameId && playerNumber === 1) {
                 await deleteDoc(doc(db, "ccc-games", currentGameId));
             }
-            if(gameListener) gameListener();
+            currentGameId = null;
             document.getElementById('matchmaking-screen').classList.add('hidden');
         };
 
-        // GESTION DU JEU
         const createNewGameState = () => ({
             player1: currentUser.uid,
             player2: null,
             status: "waiting",
             turn: 1,
-            player1State: { energy: 1, hand: [], deck: shuffleDeck(), playedCards: {} },
-            player2State: { energy: 1, hand: [], deck: shuffleDeck(), playedCards: {} },
+            player1State: { energy: 1, hand: [], deck: [], playedCards: {} },
+            player2State: { energy: 1, hand: [], deck: [], playedCards: {} },
             locations: generateLocations(),
         });
 
-        const shuffleDeck = () => {
-            // Pour un vrai jeu, créez un deck pour chaque joueur
-            return cardDatabase.sort(() => 0.5 - Math.random());
-        };
-
+        const shuffleDeck = () => cardDatabase.map(c => c.id).sort(() => 0.5 - Math.random());
         const generateLocations = () => ["Nébuleuse", "Anomalie", "Singularité"];
-
-        const startGame = () => {
-            document.getElementById('matchmaking-screen').classList.add('hidden');
-            document.getElementById('game-board').classList.remove('hidden');
-            listenToGame();
-        };
 
         const listenToGame = () => {
             if (gameListener) gameListener();
             gameListener = onSnapshot(doc(db, "ccc-games", currentGameId), (doc) => {
+                if(!doc.exists()) return;
                 const gameState = doc.data();
-                if (gameState && gameState.status === 'playing') {
+                if (gameState.status === 'playing') {
+                    if(document.getElementById('matchmaking-screen').classList.contains('hidden') === false) {
+                        document.getElementById('matchmaking-screen').classList.add('hidden');
+                        document.getElementById('game-board').classList.remove('hidden');
+                    }
                     updateUI(gameState);
-                } else if (gameState && gameState.status === 'finished') {
+                } else if (gameState.status === 'finished') {
+                    if(gameListener) gameListener();
                     showGameOver(gameState);
                 }
             });
         };
-
+        
         const updateUI = (gameState) => {
             const myState = playerNumber === 1 ? gameState.player1State : gameState.player2State;
             const opponentState = playerNumber === 1 ? gameState.player2State : gameState.player1State;
 
-            document.getElementById('turn-counter').innerText = gameState.turn;
+            document.getElementById('turn-counter').innerText = `${gameState.turn}/6`;
             document.getElementById('energy-counter').innerText = myState.energy;
 
-            // Mettre à jour les mains
-            updateHand(myState.hand, 'player-hand');
-            updateHand(opponentState.hand, 'opponent-hand', true);
-            
-            // ... Mettre à jour le plateau de jeu
+            updateHand(myState, 'player-hand');
+            updateHand(opponentState, 'opponent-hand', true);
         };
         
-        const updateHand = (hand, elementId, isOpponent = false) => {
+        const updateHand = (state, elementId, isOpponent = false) => {
             const handEl = document.getElementById(elementId);
             handEl.innerHTML = '';
-            hand.forEach(cardId => {
-                const card = isOpponent ? 
-                    { name: "Carte", art: "❓" } : 
-                    cardDatabase.find(c => c.id === cardId);
-                
+            state.hand.forEach(cardId => {
                 const cardEl = document.createElement('div');
                 cardEl.className = 'card';
-                cardEl.innerHTML = `<div class="name">${card.name}</div><div class="art">${card.art}</div>`;
+
+                if (isOpponent) {
+                    cardEl.innerHTML = `<div class="name">Carte</div><div class="art">❓</div>`;
+                } else {
+                    const card = cardDatabase.find(c => c.id === cardId);
+                    cardEl.innerHTML = `
+                        <div class="cost">${card.cost}</div>
+                        <div class="name">${card.name}</div>
+                        <div class="art">${card.art}</div>
+                        <div class="power">${card.power}</div>
+                    `;
+                    if (state.energy >= card.cost) {
+                        cardEl.classList.add('playable');
+                    }
+                }
                 handEl.appendChild(cardEl);
             });
         };
-        
-        window.endTurn = async () => {
-            // Logique de fin de tour ici
-        };
-        
+
         const showGameOver = (gameState) => {
-            // Logique de fin de partie
             document.getElementById('game-board').classList.add('hidden');
             document.getElementById('game-over-screen').classList.remove('hidden');
+            // Ajoutez ici la logique pour déterminer le gagnant
+            document.getElementById('game-result').innerText = "PARTIE TERMINÉE";
         };
 
     </script>
