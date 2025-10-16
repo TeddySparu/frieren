@@ -132,6 +132,7 @@
                 this.currentUser = null;
                 this.currentGameId = null;
                 this.gameListener = null;
+                this.lobbyListener = null;
                 this.playerNumber = null;
                 this.myLobbyId = null;
 
@@ -173,7 +174,6 @@
                     if (user) {
                         this.currentUser = user;
                         if (this.state === 'LOADING' || this.state === 'LOGIN') {
-                            this.setState('MATCHMAKING');
                             this.startMatchmaking();
                         }
                     } else {
@@ -222,10 +222,10 @@
             }
             
             waitForOpponent() {
-                this.gameListener = onSnapshot(query(collection(db, "tank-games"), where("p2.uid", "==", this.currentUser.uid), limit(1)), (snapshot) => {
+                this.lobbyListener = onSnapshot(query(collection(db, "tank-games"), where("p2.uid", "==", this.currentUser.uid), limit(1)), (snapshot) => {
                     if (!snapshot.empty) {
                         const gameDoc = snapshot.docs[0];
-                        if (this.gameListener) this.gameListener(); // Stop this listener
+                        this.cleanupLobbyListener();
                         this.currentGameId = gameDoc.id;
                         this.playerNumber = 2;
                         this.listenToGame();
@@ -238,8 +238,7 @@
                     await deleteDoc(doc(db, "tank-lobby", this.myLobbyId));
                 }
                 this.cleanup();
-                this.setState('LOBBY'); // This state does not exist in your UI, so it will show a blank screen. Let's send them back to the matchmaking screen or create a lobby screen. For now, I'll add a simple lobby.
-                this.returnToLobby();
+                window.location.href = 'index.html'; // Redirect to main menu
             }
 
             getInitialGameState(opponent) {
@@ -264,7 +263,8 @@
             }
 
             listenToGame() {
-                if (this.gameListener) this.gameListener(); // Unsubscribe from previous listener
+                this.cleanupLobbyListener();
+                if (this.gameListener) this.gameListener();
                 this.gameListener = onSnapshot(doc(db, "tank-games", this.currentGameId), (docSnap) => {
                     if (!docSnap.exists()) {
                         this.returnToLobby();
@@ -306,12 +306,11 @@
                 
                 myTank.handleControls(this.keys, this.mouse, this.walls);
                 
-                Object.values(this.tanks).forEach(t => t.update(this.walls));
-                
-                // Only P1 updates bullets and collisions to avoid race conditions
                 if (this.playerNumber === 1) {
                     this.updateBulletsAndCollisions();
                 }
+                
+                this.sendStateToFirestore();
             }
             
             async updateBulletsAndCollisions() {
@@ -326,7 +325,6 @@
                     bullet.y += bullet.vy;
                     bullet.life--;
 
-                    // Check wall collision
                     let hitWall = false;
                     for (const wall of this.walls) {
                         if (bullet.x < wall.x + wall.w && bullet.x + bullet.size > wall.x && bullet.y < wall.y + wall.h && bullet.y + bullet.size > wall.y) {
@@ -335,7 +333,6 @@
                         }
                     }
 
-                    // Check player collision
                     const targetKey = bullet.owner === 'p1' ? 'p2' : 'p1';
                     const target = this.tanks[targetKey];
                     if (target && this.isColliding(bullet, target)) {
@@ -351,24 +348,24 @@
                     }
                 }
                 
-                // Check for player death
+                let playerDied = false;
                 for (const key of ['p1', 'p2']) {
                     if(this.tanks[key] && this.tanks[key].health <= 0) {
                         this.handlePlayerDeath(key, batch);
-                        return; // Stop further processing this frame
+                        playerDied = true;
+                        break; 
                     }
                 }
 
-                if(changes) {
+                if(changes && !playerDied) {
                     batch.update(gameRef, { bullets: newBullets });
                 }
-                await batch.commit().catch(e => {}); // Catch potential conflicts
+                await batch.commit().catch(e => {});
             }
 
             handlePlayerDeath(deadPlayerKey, batch) {
                 const winnerKey = deadPlayerKey === 'p1' ? 'p2' : 'p1';
                 const winner = this.tanks[winnerKey];
-                
                 const gameRef = doc(db, "tank-games", this.currentGameId);
                 
                 batch.update(gameRef, {
@@ -381,10 +378,10 @@
             }
 
             isColliding(rect1, rect2) {
-                const size1 = rect1.size || rect1.w;
-                const size2 = rect2.size || rect2.w;
-                return rect1.x < rect2.x + size2 && rect1.x + size1 > rect2.x &&
-                       rect1.y < rect2.y + size2 && rect1.y + size1 > rect2.y;
+                const size1 = rect1.size;
+                const size2 = rect2.size;
+                return rect1.x - size1/2 < rect2.x + size2 && rect1.x + size1/2 > rect2.x &&
+                       rect1.y - size1/2 < rect2.y + size2 && rect1.y + size1/2 > rect2.y;
             }
 
             async sendStateToFirestore() {
@@ -407,7 +404,9 @@
                 
                 Object.values(this.bullets).forEach(b => {
                     this.ctx.fillStyle = b.owner === 'p1' ? '#4ddbff' : '#ff9933';
-                    this.ctx.fillRect(b.x - b.size/2, b.y - b.size/2, b.size, b.size);
+                    this.ctx.beginPath();
+                    this.ctx.arc(b.x, b.y, b.size / 2, 0, 2 * Math.PI);
+                    this.ctx.fill();
                 });
 
                 if (this.tanks.p1) this.tanks.p1.draw(this.ctx);
@@ -444,17 +443,23 @@
                 this.canvas.onmousedown = () => this.mouse.down = true;
                 this.canvas.onmouseup = () => this.mouse.down = false;
             }
+            
+            cleanupLobbyListener() {
+                if(this.lobbyListener) this.lobbyListener();
+                this.lobbyListener = null;
+            }
 
             cleanup() {
                 if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
                 if (this.gameListener) this.gameListener();
+                this.cleanupLobbyListener();
                 Object.assign(this, { animationFrameId: null, gameListener: null, currentGameId: null, playerNumber: null, myLobbyId: null, tanks: {}, keys: {}, mouse: {} });
             }
 
             returnToLobby() {
                 this.cleanup();
-                this.setState('LOBBY');
-                this.ui.lobby.querySelector('button').disabled = false;
+                this.setState('MATCHMAKING');
+                this.startMatchmaking();
             }
         }
 
@@ -463,7 +468,7 @@
             syncState(state) { Object.assign(this, state); }
             getState() { return { uid: this.uid, username: this.username, score: this.score, x: this.x, y: this.y, angle: this.angle, turretAngle: this.turretAngle, health: this.health, lastShot: this.lastShot }; }
             
-            update() { /* Logic handled by Game class for sync */ }
+            update(walls) { /* Server-driven state, local update is minimal */ }
             
             handleControls(keys, mouse, walls) {
                 let dx = 0; let dy = 0;
@@ -506,8 +511,8 @@
                     owner: this.game.playerNumber === 1 ? 'p1' : 'p2',
                     x: this.x + this.size / 2 + Math.cos(this.turretAngle) * this.turretLength,
                     y: this.y + this.size / 2 + Math.sin(this.turretAngle) * this.turretLength,
-                    vx: Math.cos(this.turretAngle) * 12,
-                    vy: Math.sin(this.turretAngle) * 12,
+                    vx: Math.cos(this.turretAngle) * 15,
+                    vy: Math.sin(this.turretAngle) * 15,
                     size: 10,
                     life: 100
                 };
@@ -517,6 +522,7 @@
             }
 
             draw(ctx) {
+                // Body
                 ctx.save();
                 ctx.translate(this.x + this.size/2, this.y + this.size/2);
                 ctx.rotate(this.angle);
@@ -527,6 +533,7 @@
                 ctx.fillRect(-this.size/2, this.size/2 - 10, this.size, 5);
                 ctx.restore();
                 
+                // Turret
                 ctx.save();
                 ctx.translate(this.x + this.size/2, this.y + this.size/2);
                 ctx.rotate(this.turretAngle);
