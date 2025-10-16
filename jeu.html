@@ -458,7 +458,6 @@
 
             returnToLobby() {
                 this.cleanup();
-                this.setState('MATCHMAKING');
                 this.startMatchmaking();
             }
         }
@@ -468,7 +467,7 @@
             syncState(state) { Object.assign(this, state); }
             getState() { return { uid: this.uid, username: this.username, score: this.score, x: this.x, y: this.y, angle: this.angle, turretAngle: this.turretAngle, health: this.health, lastShot: this.lastShot }; }
             
-            update(walls) { /* Server-driven state, local update is minimal */ }
+            update(walls) { /* Server-driven state */ }
             
             handleControls(keys, mouse, walls) {
                 let dx = 0; let dy = 0;
