@@ -34,6 +34,8 @@
             backdrop-filter: blur(8px);
             z-index: 100;
             text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
         }
         .screen h1 {
             font-size: 4em;
@@ -63,24 +65,21 @@
             color: #0a0a14;
         }
 
-        #character-select {
-            display: flex;
-            gap: 40px;
-        }
+        #character-select { display: flex; gap: 40px; }
         .char-card {
             border: 4px solid #0ff;
             padding: 20px;
             cursor: pointer;
             transition: all 0.3s;
         }
-        .char-card:hover {
+        .char-card:hover, .char-card.selected {
             transform: scale(1.1);
             background: #0ff;
             color: #0a0a14;
             box-shadow: 0 0 25px #0ff;
         }
         .char-card h3 { font-size: 2em; margin-top: 0; }
-        .char-card p { font-size: 1.5em; }
+        .char-card p { font-size: 4em; margin-bottom: 0; }
 
         #game-container {
             position: relative;
@@ -90,8 +89,7 @@
         
         canvas {
             display: block;
-            background-image: url('https://i.imgur.com/gK7s0Y8.png'); /* Fond étoilé */
-            background-size: cover;
+            background: #1a1a2e;
         }
 
         #hud {
@@ -106,19 +104,23 @@
             display: flex;
             align-items: center;
             gap: 20px;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
             padding: 10px 20px;
             border-radius: 15px;
         }
         .player-hud .stocks { font-size: 2em; }
-        .player-hud .damage { font-size: 3em; font-weight: bold; }
+        .player-hud .damage { font-size: 3em; font-weight: bold; min-width: 120px; text-align: center; }
         #player1-hud { color: #4ddbff; border: 2px solid #4ddbff; }
         #player2-hud { color: #ff9933; border: 2px solid #ff9933; }
     </style>
 </head>
 <body>
 
-    <div id="login-screen" class="screen">
+    <div id="loading-screen" class="screen">
+        <h1>Chargement...</h1>
+    </div>
+
+    <div id="login-screen" class="screen hidden">
         <h1>Ultimate Brawl</h1>
         <p style="font-size: 1.2em;">Veuillez vous connecter via la page principale pour jouer.</p>
         <a href="index.html" style="text-decoration: none;"><button>Retour au Site</button></a>
@@ -127,16 +129,16 @@
     <div id="char-select-screen" class="screen hidden">
         <h1>Choisissez votre combattant</h1>
         <div id="character-select">
-            <div class="char-card" onclick="window.game.selectCharacter('frieren')">
-                <p style="font-size: 4em;">🧙‍♀️</p>
+            <div class="char-card" id="char-frieren" onclick="window.game.selectCharacter('frieren')">
+                <p>🧙‍♀️</p>
                 <h3>Frieren</h3>
             </div>
-            <div class="char-card" onclick="window.game.selectCharacter('jagermeister')">
-                <p style="font-size: 4em;">🦌</p>
+            <div class="char-card" id="char-jagermeister" onclick="window.game.selectCharacter('jagermeister')">
+                <p>🦌</p>
                 <h3>Jägermaister</h3>
             </div>
         </div>
-        <p id="char-select-status">En attente de votre choix...</p>
+        <p id="char-select-status" style="font-size: 1.5em;">En attente de votre choix...</p>
     </div>
 
     <div id="matchmaking-screen" class="screen hidden">
@@ -182,20 +184,19 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- Définition des personnages ---
         const CHARACTERS = {
             frieren: {
-                name: 'Frieren', color: '#4ddbff', size: { w: 40, h: 55 },
+                name: 'Frieren', color: '#4ddbff', emoji: '🧙‍♀️', size: { w: 40, h: 55 }, weight: 0.9,
                 attacks: {
-                    quick: { type: 'projectile', hitbox: { w: 20, h: 20 }, damage: 3, knockback: 0.3, speed: 10, duration: 15, cooldown: 20 },
-                    strong: { type: 'beam', hitbox: { w: 150, h: 30 }, damage: 10, knockback: 1.2, duration: 30, cooldown: 80, startup: 10 }
+                    quick: { type: 'projectile', hitbox: { w: 20, h: 20 }, damage: 3, knockbackBase: 3, knockbackScale: 0.1, speed: 12, duration: 30, cooldown: 25 },
+                    strong: { type: 'beam', hitbox: { w: 150, h: 30 }, damage: 10, knockbackBase: 6, knockbackScale: 0.5, duration: 25, cooldown: 80, startup: 15 }
                 }
             },
             jagermeister: {
-                name: 'Jägermaister', color: '#ff9933', size: { w: 50, h: 50 },
+                name: 'Jägermaister', color: '#ff9933', emoji: '🦌', size: { w: 50, h: 50 }, weight: 1.1,
                 attacks: {
-                    quick: { type: 'punch', hitbox: { w: 40, h: 20 }, damage: 5, knockback: 0.8, duration: 10, cooldown: 25 },
-                    strong: { type: 'stomp', hitbox: { w: 80, h: 20 }, damage: 12, knockback: 1.5, duration: 20, cooldown: 100, startup: 15 }
+                    quick: { type: 'punch', hitbox: { w: 50, h: 30 }, damage: 6, knockbackBase: 5, knockbackScale: 0.4, duration: 10, cooldown: 30, startup: 5 },
+                    strong: { type: 'stomp', hitbox: { w: 100, h: 25 }, damage: 14, knockbackBase: 8, knockbackScale: 0.8, duration: 20, cooldown: 100, startup: 20 }
                 }
             }
         };
@@ -206,13 +207,13 @@
                 this.ctx = this.canvas.getContext('2d');
                 this.canvas.width = 1200;
                 this.canvas.height = 700;
-
+                
                 this.GRAVITY = 0.6;
                 this.JUMP_FORCE = -15;
                 this.PLAYER_SPEED = 6;
                 this.FRICTION = 0.85;
-                
-                this.state = 'IDLE'; // IDLE, CHAR_SELECT, MATCHMAKING, PLAYING, GAMEOVER
+
+                this.state = 'LOADING';
                 this.currentUser = null;
                 this.currentGameId = null;
                 this.gameListener = null;
@@ -235,6 +236,7 @@
 
             initUI() {
                 this.ui = {
+                    loading: document.getElementById('loading-screen'),
                     login: document.getElementById('login-screen'),
                     charSelect: document.getElementById('char-select-screen'),
                     charSelectStatus: document.getElementById('char-select-status'),
@@ -247,13 +249,449 @@
                 };
             }
             
-            // ... (Le reste du code du jeu est ci-dessous)
-            // ... (Ce code est très long, il sera inséré ici)
-        };
+            setState(newState) {
+                this.state = newState;
+                Object.values(this.ui).forEach(el => el.classList.add('hidden'));
+                switch(newState) {
+                    case 'LOADING': this.ui.loading.classList.remove('hidden'); break;
+                    case 'LOGIN': this.ui.login.classList.remove('hidden'); break;
+                    case 'CHAR_SELECT': this.ui.charSelect.classList.remove('hidden'); break;
+                    case 'MATCHMAKING': this.ui.matchmaking.classList.remove('hidden'); break;
+                    case 'PLAYING': this.ui.game.classList.remove('hidden'); break;
+                    case 'GAMEOVER': this.ui.gameOver.classList.remove('hidden'); break;
+                }
+            }
 
-        // ... Le reste du code du jeu sera inséré ici, créant ainsi le jeu complet.
+            authCheck() {
+                onAuthStateChanged(auth, user => {
+                    if (user) {
+                        this.currentUser = user;
+                        this.setState('CHAR_SELECT');
+                    } else {
+                        this.currentUser = null;
+                        this.setState('LOGIN');
+                        this.cleanup();
+                    }
+                });
+            }
+
+            async selectCharacter(charId) {
+                if (this.state !== 'CHAR_SELECT') return;
+                
+                document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
+                document.getElementById(`char-${charId}`).classList.add('selected');
+                this.ui.charSelectStatus.textContent = `Vous avez choisi ${CHARACTERS[charId].name}. En attente de l'adversaire...`;
+
+                this.myCharId = charId;
+                this.startMatchmaking();
+            }
+
+            async startMatchmaking() {
+                this.setState('MATCHMAKING');
+
+                const q = query(collection(db, "ultimate-brawl-games"), where("status", "==", "waiting"), limit(1));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    const gameDoc = querySnapshot.docs[0];
+                    if (gameDoc.data().p1.uid !== this.currentUser.uid) {
+                        this.currentGameId = gameDoc.id;
+                        this.playerNumber = 2;
+                        await updateDoc(doc(db, "ultimate-brawl-games", this.currentGameId), {
+                            "p2.uid": this.currentUser.uid,
+                            "p2.charId": this.myCharId,
+                            status: "playing",
+                            lastUpdate: serverTimestamp()
+                        });
+                        this.listenToGame();
+                    }
+                } else {
+                    const newGameRef = doc(collection(db, "ultimate-brawl-games"));
+                    this.currentGameId = newGameRef.id;
+                    this.playerNumber = 1;
+                    await setDoc(newGameRef, this.getInitialGameState());
+                    this.listenToGame();
+                }
+            }
+
+            getInitialGameState() {
+                return {
+                    status: "waiting",
+                    p1: this.createPlayerState(1, this.currentUser.uid, this.myCharId),
+                    p2: this.createPlayerState(2, null, null),
+                    lastUpdate: serverTimestamp(),
+                    winner: null
+                };
+            }
+
+            createPlayerState(playerNum, uid, charId) {
+                const spawnX = playerNum === 1 ? this.canvas.width / 4 : (this.canvas.width / 4) * 3;
+                return {
+                    uid: uid,
+                    charId: charId,
+                    x: spawnX, y: 100, vx: 0, vy: 0,
+                    damage: 0, stocks: 3, facing: playerNum === 1 ? 1 : -1,
+                    action: 'idle', actionFrame: 0,
+                    jumpsLeft: 2, isGrounded: false, invincibleUntil: 0
+                };
+            }
+
+            listenToGame() {
+                if (this.gameListener) this.gameListener();
+                this.gameListener = onSnapshot(doc(db, "ultimate-brawl-games", this.currentGameId), (doc) => {
+                    if (!doc.exists()) return this.cleanup();
+                    
+                    const gameState = doc.data();
+                    if (gameState.status === 'playing') {
+                        if (this.state !== 'PLAYING') this.startGame(gameState);
+                        this.players = { p1: new Player(gameState.p1, this), p2: new Player(gameState.p2, this) };
+                    }
+                    if (gameState.status === 'finished') {
+                        this.endGame(gameState.winner);
+                    }
+                });
+            }
+
+            startGame(initialState) {
+                this.setState('PLAYING');
+                this.players = { p1: new Player(initialState.p1, this), p2: new Player(initialState.p2, this) };
+                this.setupKeyboardListeners();
+                this.gameLoop();
+            }
+
+            gameLoop() {
+                this.update();
+                this.draw();
+                this.animationFrameId = requestAnimationFrame(() => this.gameLoop());
+            }
+
+            update() {
+                if (this.state !== 'PLAYING' || !this.players.p1 || !this.players.p2) return;
+                
+                const myPlayer = this.playerNumber === 1 ? this.players.p1 : this.players.p2;
+                const opponent = this.playerNumber === 1 ? this.players.p2 : this.players.p1;
+                
+                // --- CONTRÔLES LOCAUX ---
+                myPlayer.handleControls(this.keys);
+                
+                // --- MISE À JOUR PHYSIQUE ET ACTIONS ---
+                Object.values(this.players).forEach(p => p.update());
+                
+                // --- DÉTECTION DES COLLISIONS D'ATTAQUES ---
+                this.checkHitCollisions();
+                
+                // --- MISE À JOUR DES PROJECTILES ET PARTICULES ---
+                this.projectiles = this.projectiles.filter(p => p.update());
+                this.particles = this.particles.filter(p => p.update());
+                
+                // --- ENVOI DE L'ÉTAT LOCAL À FIREBASE ---
+                this.sendStateToFirestore(myPlayer);
+            }
+
+            checkHitCollisions() {
+                const p1 = this.players.p1;
+                const p2 = this.players.p2;
+
+                if (p1.hitbox && p1.isHittable(p2) && p1.hitbox.collidesWith(p2.getHurtbox())) {
+                    p2.takeHit(p1.hitbox);
+                    p1.hitbox = null; 
+                }
+                if (p2.hitbox && p2.isHittable(p1) && p2.hitbox.collidesWith(p1.getHurtbox())) {
+                    p1.takeHit(p2.hitbox);
+                    p2.hitbox = null;
+                }
+            }
+
+            async sendStateToFirestore(myPlayerData) {
+                if (!myPlayerData) return;
+                const updatePath = this.playerNumber === 1 ? "p1" : "p2";
+                try {
+                    await updateDoc(doc(db, "ultimate-brawl-games", this.currentGameId), {
+                        [updatePath]: myPlayerData.getState()
+                    });
+                } catch(e) { console.error("Firestore update failed:", e); }
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                this.ctx.fillStyle = '#8c8cde';
+                this.platforms.forEach(p => this.ctx.fillRect(p.x, p.y, p.width, p.height));
+
+                this.projectiles.forEach(p => p.draw(this.ctx));
+                this.particles.forEach(p => p.draw(this.ctx));
+
+                if (this.players.p1) this.players.p1.draw(this.ctx);
+                if (this.players.p2) this.players.p2.draw(this.ctx);
+                
+                this.updateHUD();
+            }
+
+            updateHUD() {
+                if (this.players.p1) {
+                    this.ui.p1Hud.damage.textContent = `${Math.floor(this.players.p1.damage)}%`;
+                    this.ui.p1Hud.stocks.textContent = `P1 ${'❤️'.repeat(this.players.p1.stocks)}`;
+                }
+                if (this.players.p2) {
+                    this.ui.p2Hud.damage.textContent = `${Math.floor(this.players.p2.damage)}%`;
+                    this.ui.p2Hud.stocks.textContent = `${'❤️'.repeat(this.players.p2.stocks)} P2`;
+                }
+            }
+
+            endGame(winnerUID) {
+                if(this.state === 'GAMEOVER') return;
+                this.setState('GAMEOVER');
+                this.ui.result.textContent = winnerUID === this.currentUser.uid ? "VICTOIRE !" : "DÉFAITE...";
+                this.cleanupGameLogic();
+            }
+            
+            async rematch() {
+                this.cleanup();
+                this.setState('CHAR_SELECT');
+            }
+
+            setupKeyboardListeners() {
+                this.keys = {};
+                window.onkeydown = e => this.keys[e.code] = true;
+                window.onkeyup = e => this.keys[e.code] = false;
+            }
+
+            cleanupGameLogic() {
+                if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
+                this.animationFrameId = null;
+                this.players = {};
+                this.projectiles = [];
+                this.particles = [];
+                this.keys = {};
+            }
+
+            cleanup() {
+                this.cleanupGameLogic();
+                if (this.gameListener) this.gameListener();
+                this.gameListener = null;
+                this.currentGameId = null;
+                this.playerNumber = null;
+                this.state = 'IDLE';
+            }
+        }
+
+        class Player {
+            constructor(state, game) {
+                this.game = game;
+                this.char = CHARACTERS[state.charId];
+                Object.assign(this, state);
+            }
+
+            getState() {
+                return {
+                    uid: this.uid, charId: this.charId, x: this.x, y: this.y,
+                    vx: this.vx, vy: this.vy, damage: this.damage, stocks: this.stocks,
+                    facing: this.facing, action: this.action, actionFrame: this.actionFrame,
+                    jumpsLeft: this.jumpsLeft, isGrounded: this.isGrounded, invincibleUntil: this.invincibleUntil
+                };
+            }
+
+            update() {
+                if (Date.now() < this.invincibleUntil) {
+                    this.action = 'invincible';
+                } else if (this.action === 'hitstun' || this.action === 'invincible') {
+                    this.action = 'idle';
+                }
+
+                // Appliquer la physique si pas en hitstun
+                if (this.action !== 'hitstun') {
+                    this.x += this.vx;
+                    this.vx *= this.game.FRICTION;
+                } else {
+                     this.x += this.vx;
+                     this.y += this.vy;
+                }
+                
+                this.vy += this.game.GRAVITY;
+                this.y += this.vy;
+
+                // Collisions avec les plateformes
+                this.isGrounded = false;
+                this.game.platforms.forEach(p => {
+                    if (this.y + this.char.size.h >= p.y && this.y + this.char.size.h <= p.y + p.height &&
+                        this.x + this.char.size.w >= p.x && this.x <= p.x + p.width && this.vy > 0) {
+                        this.vy = 0;
+                        this.y = p.y - this.char.size.h;
+                        this.isGrounded = true;
+                        this.jumpsLeft = 2;
+                    }
+                });
+                
+                // Mettre à jour l'action et la hitbox
+                this.updateAction();
+
+                // Vérifier si le joueur est hors limites
+                if (this.y > this.game.canvas.height + 100 || this.x < -100 || this.x > this.game.canvas.width + 100) {
+                    this.loseStock();
+                }
+            }
+            
+            handleControls(keys) {
+                if (this.action !== 'idle' && this.action !== 'run' && this.action !== 'jump') return;
+                
+                // Mouvement horizontal
+                if (keys['ArrowLeft']) { this.vx = -this.game.PLAYER_SPEED; this.facing = -1; }
+                if (keys['ArrowRight']) { this.vx = this.game.PLAYER_SPEED; this.facing = 1; }
+                
+                // Saut
+                if (keys['ArrowUp'] && this.jumpsLeft > 0) {
+                    this.vy = this.game.JUMP_FORCE;
+                    this.jumpsLeft--;
+                    keys['ArrowUp'] = false; // Consommer le saut
+                }
+
+                // Attaques
+                if (keys['KeyJ']) this.performAttack('quick');
+                if (keys['KeyK']) this.performAttack('strong');
+            }
+            
+            updateAction() {
+                if (this.action.includes('attack') || this.action === 'hitstun' || this.action === 'invincible') {
+                    this.actionFrame--;
+                    if (this.actionFrame <= 0) {
+                        this.action = 'idle';
+                        this.hitbox = null;
+                    }
+                }
+            }
+
+            performAttack(type) {
+                const attack = this.char.attacks[type];
+                if (this.action !== 'idle' && this.action !== 'run' && this.action !== 'jump') return;
+
+                this.action = `${type}_attack`;
+                this.actionFrame = attack.duration + (attack.startup || 0);
+                
+                setTimeout(() => {
+                    if (this.action !== `${type}_attack`) return; // Action annulée
+                    this.hitbox = new Hitbox(this, attack);
+                }, (attack.startup || 0) * (1000/60)); // Convertir les frames en ms
+            }
+
+            takeHit(hitbox) {
+                if (Date.now() < this.invincibleUntil) return;
+                
+                this.damage += hitbox.damage;
+                const totalKnockback = hitbox.knockbackBase + (this.damage * hitbox.knockbackScale / this.char.weight);
+                
+                this.vx = totalKnockback * hitbox.owner.facing;
+                this.vy = -totalKnockback * 0.7; // Angle d'éjection vers le haut
+                
+                this.action = 'hitstun';
+                this.actionFrame = totalKnockback * 2; // Le hitstun dépend de la puissance du coup
+                this.isGrounded = false;
+                
+                // Particules d'impact
+                for(let i = 0; i < 15; i++) {
+                    this.game.particles.push(new Particle(this.x + this.char.size.w / 2, this.y + this.char.size.h / 2));
+                }
+            }
+
+            loseStock() {
+                if (Date.now() < this.invincibleUntil) return;
+                this.stocks--;
+                if(this.stocks <= 0) {
+                    // Le jeu est terminé, l'autre joueur gagne
+                    // L'état sera envoyé à Firestore, qui déclenchera la fin de partie
+                } else {
+                    this.respawn();
+                }
+            }
+
+            respawn() {
+                this.x = this.game.canvas.width / 2;
+                this.y = 100;
+                this.vx = 0;
+                this.vy = 0;
+                this.damage = 0;
+                this.invincibleUntil = Date.now() + 2000; // 2 secondes d'invincibilité
+            }
+
+            getHurtbox() {
+                return { x: this.x, y: this.y, w: this.char.size.w, h: this.char.size.h };
+            }
+
+            isHittable(otherPlayer) {
+                return Date.now() > otherPlayer.invincibleUntil;
+            }
+
+            draw(ctx) {
+                ctx.save();
+                if (Date.now() < this.invincibleUntil && Math.floor(Date.now() / 100) % 2) {
+                    ctx.globalAlpha = 0.5;
+                }
+                
+                // Dessin simple basé sur l'emoji
+                ctx.font = `${this.char.size.h}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText(this.char.emoji, this.x + this.char.size.w / 2, this.y + this.char.size.h - 5);
+                
+                ctx.restore();
+
+                // Debug Hitbox
+                if (this.hitbox) {
+                    ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+                    ctx.fillRect(this.hitbox.x, this.hitbox.y, this.hitbox.w, this.hitbox.h);
+                }
+            }
+        }
         
+        class Hitbox {
+            constructor(owner, attack) {
+                this.owner = owner;
+                this.damage = attack.damage;
+                this.knockbackBase = attack.knockbackBase;
+                this.knockbackScale = attack.knockbackScale;
+
+                const ownerBox = owner.getHurtbox();
+                this.w = attack.hitbox.w;
+                this.h = attack.hitbox.h;
+                this.y = ownerBox.y + (ownerBox.h / 2) - (this.h / 2);
+
+                if (owner.facing > 0) {
+                    this.x = ownerBox.x + ownerBox.w;
+                } else {
+                    this.x = ownerBox.x - this.w;
+                }
+            }
+
+            collidesWith(hurtbox) {
+                return this.x < hurtbox.x + hurtbox.w &&
+                       this.x + this.w > hurtbox.x &&
+                       this.y < hurtbox.y + hurtbox.h &&
+                       this.y + this.h > hurtbox.y;
+            }
+        }
+        
+        class Particle {
+            constructor(x, y) {
+                this.x = x; this.y = y;
+                this.vx = (Math.random() - 0.5) * 8;
+                this.vy = (Math.random() - 0.5) * 8;
+                this.life = 30;
+                this.size = Math.random() * 5 + 2;
+                this.color = 'orange';
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                this.life--;
+                return this.life > 0;
+            }
+            draw(ctx) {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.life / 30;
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+                ctx.globalAlpha = 1;
+            }
+        }
+
         window.game = new Game();
+
     </script>
 </body>
 </html>
