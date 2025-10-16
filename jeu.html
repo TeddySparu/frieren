@@ -64,7 +64,7 @@
             cursor: crosshair;
         }
         
-        canvas { display: block; background: #1a1a2e; }
+        canvas { display: block; background: #2c2c3e; }
 
         #score-hud {
             position: absolute;
@@ -88,9 +88,9 @@
         <a href="index.html" style="text-decoration: none;"><button>Connexion requise</button></a>
     </div>
     
-    <div id="lobby-screen" class="screen hidden">
-        <h1>Lobby</h1>
-        <button id="ready-btn" onclick="window.game.setReady()">Rechercher une partie</button>
+    <div id="matchmaking-screen" class="screen hidden">
+        <h1>Recherche d'un adversaire...</h1>
+        <button onclick="window.game.cancelMatchmaking()">Annuler</button>
     </div>
 
     <div id="game-container" class="hidden">
@@ -100,7 +100,7 @@
     
     <div id="game-over-screen" class="screen hidden">
         <h1 id="game-result"></h1>
-        <button onclick="window.game.returnToLobby()">Retour au Lobby</button>
+        <button onclick="window.game.returnToLobby()">Retourner au Lobby</button>
     </div>
 
     <script type="module">
@@ -109,12 +109,12 @@
         import { getFirestore, doc, onSnapshot, collection, query, where, limit, getDocs, updateDoc, deleteDoc, setDoc, serverTimestamp, addDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         
         const firebaseConfig = {
-          apiKey: "AIzaSyBhyxeEHBKrhuECJKt2d7NwSN7lcv39IX0",
-          authDomain: "frieren-2-79e0c.firebaseapp.com",
-          projectId: "frieren-2-79e0c",
-          storageBucket: "frieren-2-79e0c.appspot.com",
-          messagingSenderId: "861104473745",
-          appId: "1:8611044737445:web:377da7b0daaf5570572130"
+            apiKey: "AIzaSyBhyxeEHBKrhuECJKt2d7NwSN7lcv39IX0",
+            authDomain: "frieren-2-79e0c.firebaseapp.com",
+            projectId: "frieren-2-79e0c",
+            storageBucket: "frieren-2-79e0c.appspot.com",
+            messagingSenderId: "861104473745",
+            appId: "1:861104473745:web:377da7b0daaf5570572130"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -133,15 +133,16 @@
                 this.currentGameId = null;
                 this.gameListener = null;
                 this.playerNumber = null;
-                this.myReadyId = null;
+                this.myLobbyId = null;
 
                 this.tanks = {};
-                this.bullets = [];
+                this.bullets = {};
                 this.walls = [];
                 
                 this.keys = {};
                 this.mouse = { x: 0, y: 0, down: false };
                 this.animationFrameId = null;
+                this.lastSentState = '';
 
                 this.initUI();
                 this.authCheck();
@@ -151,7 +152,7 @@
                 this.ui = {
                     loading: document.getElementById('loading-screen'),
                     login: document.getElementById('login-screen'),
-                    lobby: document.getElementById('lobby-screen'),
+                    matchmaking: document.getElementById('matchmaking-screen'),
                     game: document.getElementById('game-container'),
                     gameOver: document.getElementById('game-over-screen'),
                     score: document.getElementById('score-hud'),
@@ -171,7 +172,10 @@
                 onAuthStateChanged(auth, user => {
                     if (user) {
                         this.currentUser = user;
-                        if (this.state === 'LOADING' || this.state === 'LOGIN') this.setState('LOBBY');
+                        if (this.state === 'LOADING' || this.state === 'LOGIN') {
+                            this.setState('MATCHMAKING');
+                            this.startMatchmaking();
+                        }
                     } else {
                         this.currentUser = null;
                         this.cleanup();
@@ -179,54 +183,63 @@
                     }
                 });
             }
+            
+            async startMatchmaking() {
+                this.cleanup();
+                this.setState('MATCHMAKING');
 
-            async setReady() {
-                this.ui.lobby.querySelector('button').disabled = true;
-                
-                const readyPlayer = {
+                // Add self to lobby
+                const lobbyPlayer = {
                     uid: this.currentUser.uid,
                     username: this.currentUser.displayName || "Joueur",
                     timestamp: serverTimestamp()
                 };
-                
-                const docRef = await addDoc(collection(db, "tank-lobby"), readyPlayer);
-                this.myReadyId = docRef.id;
-                this.startMatchmaking();
-            }
+                const docRef = await addDoc(collection(db, "tank-lobby"), lobbyPlayer);
+                this.myLobbyId = docRef.id;
 
-            async startMatchmaking() {
+                // Look for an opponent
                 const q = query(collection(db, "tank-lobby"), where("uid", "!=", this.currentUser.uid), limit(1));
                 const querySnapshot = await getDocs(q);
 
                 if (!querySnapshot.empty) {
                     const opponentDoc = querySnapshot.docs[0];
-                    
+                    // Found someone, create game as P1
                     const batch = writeBatch(db);
                     const newGameRef = doc(collection(db, "tank-games"));
                     this.currentGameId = newGameRef.id;
                     this.playerNumber = 1;
 
                     batch.set(newGameRef, this.getInitialGameState(opponentDoc.data()));
-                    batch.delete(doc(db, "tank-lobby", this.myReadyId));
+                    batch.delete(doc(db, "tank-lobby", this.myLobbyId));
                     batch.delete(doc(db, "tank-lobby", opponentDoc.id));
                     await batch.commit();
                     
                     this.listenToGame();
                 } else {
+                    // No one found, wait for someone to create a game with us
                     this.waitForOpponent();
                 }
             }
             
             waitForOpponent() {
-                this.gameListener = onSnapshot(query(collection(db, "tank-games"), where("p2.uid", "==", this.currentUser.uid), where("status", "==", "playing"), limit(1)), (snapshot) => {
+                this.gameListener = onSnapshot(query(collection(db, "tank-games"), where("p2.uid", "==", this.currentUser.uid), limit(1)), (snapshot) => {
                     if (!snapshot.empty) {
                         const gameDoc = snapshot.docs[0];
+                        if (this.gameListener) this.gameListener(); // Stop this listener
                         this.currentGameId = gameDoc.id;
                         this.playerNumber = 2;
-                        if (this.gameListener) this.gameListener(); // Stop this listener
                         this.listenToGame();
                     }
                 });
+            }
+
+            async cancelMatchmaking() {
+                if(this.myLobbyId) {
+                    await deleteDoc(doc(db, "tank-lobby", this.myLobbyId));
+                }
+                this.cleanup();
+                this.setState('LOBBY'); // This state does not exist in your UI, so it will show a blank screen. Let's send them back to the matchmaking screen or create a lobby screen. For now, I'll add a simple lobby.
+                this.returnToLobby();
             }
 
             getInitialGameState(opponent) {
@@ -244,14 +257,14 @@
                     x: playerNum === 1 ? 100 : this.canvas.width - 100,
                     y: this.canvas.height / 2,
                     angle: 0,
-                    turretAngle: 0,
+                    turretAngle: playerNum === 1 ? 0 : Math.PI,
                     health: 100,
                     lastShot: 0
                 };
             }
 
             listenToGame() {
-                if (this.gameListener) this.gameListener();
+                if (this.gameListener) this.gameListener(); // Unsubscribe from previous listener
                 this.gameListener = onSnapshot(doc(db, "tank-games", this.currentGameId), (docSnap) => {
                     if (!docSnap.exists()) {
                         this.returnToLobby();
@@ -263,7 +276,7 @@
                     if (!this.tanks.p1) this.tanks.p1 = new Tank(gameState.p1, this); else this.tanks.p1.syncState(gameState.p1);
                     if (!this.tanks.p2) this.tanks.p2 = new Tank(gameState.p2, this); else this.tanks.p2.syncState(gameState.p2);
                     
-                    this.bullets = Object.values(gameState.bullets || {});
+                    this.bullets = gameState.bullets || {};
                     this.ui.score.textContent = `${gameState.p1.score} - ${gameState.p2.score}`;
 
                     if(this.mapSeed !== gameState.mapSeed) {
@@ -290,50 +303,101 @@
             update() {
                 if (this.state !== 'PLAYING' || !this.tanks.p1 || !this.tanks.p2) return;
                 const myTank = this.playerNumber === 1 ? this.tanks.p1 : this.tanks.p2;
-                myTank.handleControls(this.keys, this.mouse);
                 
-                Object.values(this.tanks).forEach(t => t.update());
+                myTank.handleControls(this.keys, this.mouse, this.walls);
                 
-                this.checkCollisions();
-                this.sendStateToFirestore();
-            }
-
-            checkCollisions() {
-                const myTankKey = this.playerNumber === 1 ? 'p1' : 'p2';
-                // Bullet collisions are only checked by P1 to avoid duplicate events
-                if (this.playerNumber !== 1) return;
-
-                const batch = writeBatch(db);
-                let changes = false;
-
-                Object.entries(this.bullets).forEach(([id, bullet]) => {
-                    if(!bullet) return;
-                    const targetKey = bullet.owner === 'p1' ? 'p2' : 'p1';
-                    const target = this.tanks[targetKey];
-                    
-                    if (target && this.isColliding(bullet, target)) {
-                        batch.update(doc(db, "tank-games", this.currentGameId), {
-                            [`bullets.${id}`]: null,
-                            [`${targetKey}.health`]: Math.max(0, target.health - 10)
-                        });
-                        changes = true;
-                    }
-                });
-
-                if (changes) batch.commit();
+                Object.values(this.tanks).forEach(t => t.update(this.walls));
+                
+                // Only P1 updates bullets and collisions to avoid race conditions
+                if (this.playerNumber === 1) {
+                    this.updateBulletsAndCollisions();
+                }
             }
             
+            async updateBulletsAndCollisions() {
+                const batch = writeBatch(db);
+                const gameRef = doc(db, "tank-games", this.currentGameId);
+                let changes = false;
+                let newBullets = { ...this.bullets };
+
+                for (const id in newBullets) {
+                    let bullet = newBullets[id];
+                    bullet.x += bullet.vx;
+                    bullet.y += bullet.vy;
+                    bullet.life--;
+
+                    // Check wall collision
+                    let hitWall = false;
+                    for (const wall of this.walls) {
+                        if (bullet.x < wall.x + wall.w && bullet.x + bullet.size > wall.x && bullet.y < wall.y + wall.h && bullet.y + bullet.size > wall.y) {
+                            hitWall = true;
+                            break;
+                        }
+                    }
+
+                    // Check player collision
+                    const targetKey = bullet.owner === 'p1' ? 'p2' : 'p1';
+                    const target = this.tanks[targetKey];
+                    if (target && this.isColliding(bullet, target)) {
+                        const newHealth = Math.max(0, target.health - 20);
+                        batch.update(gameRef, { [`${targetKey}.health`]: newHealth });
+                        delete newBullets[id];
+                        changes = true;
+                    } else if (bullet.life <= 0 || hitWall) {
+                        delete newBullets[id];
+                        changes = true;
+                    } else {
+                        newBullets[id] = bullet;
+                    }
+                }
+                
+                // Check for player death
+                for (const key of ['p1', 'p2']) {
+                    if(this.tanks[key] && this.tanks[key].health <= 0) {
+                        this.handlePlayerDeath(key, batch);
+                        return; // Stop further processing this frame
+                    }
+                }
+
+                if(changes) {
+                    batch.update(gameRef, { bullets: newBullets });
+                }
+                await batch.commit().catch(e => {}); // Catch potential conflicts
+            }
+
+            handlePlayerDeath(deadPlayerKey, batch) {
+                const winnerKey = deadPlayerKey === 'p1' ? 'p2' : 'p1';
+                const winner = this.tanks[winnerKey];
+                
+                const gameRef = doc(db, "tank-games", this.currentGameId);
+                
+                batch.update(gameRef, {
+                    [`${winnerKey}.score`]: winner.score + 1,
+                    mapSeed: Math.random(),
+                    bullets: {},
+                    p1: { ...this.tanks.p1.getState(), ...this.createTankState(1), health: 100, score: winnerKey === 'p2' ? this.tanks.p1.score : this.tanks.p1.score + 1 },
+                    p2: { ...this.tanks.p2.getState(), ...this.createTankState(2), health: 100, score: winnerKey === 'p1' ? this.tanks.p2.score : this.tanks.p2.score + 1 }
+                });
+            }
+
             isColliding(rect1, rect2) {
-                return rect1.x < rect2.x + rect2.size &&
-                       rect1.x + rect1.size > rect2.x &&
-                       rect1.y < rect2.y + rect2.size &&
-                       rect1.y + rect1.size > rect2.y;
+                const size1 = rect1.size || rect1.w;
+                const size2 = rect2.size || rect2.w;
+                return rect1.x < rect2.x + size2 && rect1.x + size1 > rect2.x &&
+                       rect1.y < rect2.y + size2 && rect1.y + size1 > rect2.y;
             }
 
             async sendStateToFirestore() {
                 const myTank = this.playerNumber === 1 ? this.tanks.p1 : this.tanks.p2;
-                const updates = { [`p${this.playerNumber}`]: myTank.getState() };
-                await updateDoc(doc(db, "tank-games", this.currentGameId), updates);
+                const stateString = JSON.stringify(myTank.getState());
+
+                if (stateString !== this.lastSentState) {
+                    this.lastSentState = stateString;
+                    const updatePath = this.playerNumber === 1 ? "p1" : "p2";
+                    await updateDoc(doc(db, "tank-games", this.currentGameId), {
+                        [updatePath]: myTank.getState()
+                    }).catch(e => {});
+                }
             }
 
             draw() {
@@ -341,9 +405,9 @@
                 this.ctx.fillStyle = '#555';
                 this.walls.forEach(w => this.ctx.fillRect(w.x, w.y, w.w, w.h));
                 
-                this.bullets.forEach(b => {
+                Object.values(this.bullets).forEach(b => {
                     this.ctx.fillStyle = b.owner === 'p1' ? '#4ddbff' : '#ff9933';
-                    this.ctx.fillRect(b.x, b.y, b.size, b.size);
+                    this.ctx.fillRect(b.x - b.size/2, b.y - b.size/2, b.size, b.size);
                 });
 
                 if (this.tanks.p1) this.tanks.p1.draw(this.ctx);
@@ -361,35 +425,12 @@
                 this.walls.push({ x: this.canvas.width - 20, y: 0, w: 20, h: this.canvas.height });
 
                 for(let i=0; i < 5; i++) {
-                    randomSeed++;
-                    const x = rand(randomSeed) * (this.canvas.width - 200) + 100;
-                    randomSeed++;
-                    const y = rand(randomSeed) * (this.canvas.height - 200) + 100;
-                    randomSeed++;
-                    const w = rand(randomSeed) > 0.5 ? 200 : 30;
-                    randomSeed++;
-                    const h = w === 200 ? 30 : 200;
+                    randomSeed++; const x = rand(randomSeed) * (this.canvas.width - 300) + 150;
+                    randomSeed++; const y = rand(randomSeed) * (this.canvas.height - 300) + 150;
+                    randomSeed++; const w = rand(randomSeed) > 0.5 ? 250 : 40;
+                    randomSeed++; const h = w === 250 ? 40 : 250;
                     this.walls.push({x, y, w, h});
                 }
-            }
-            
-            async handlePlayerDeath(deadPlayerKey) {
-                if (this.playerNumber !== 1) return; // Only P1 handles scoring
-                
-                const winnerKey = deadPlayerKey === 'p1' ? 'p2' : 'p1';
-                const winner = this.tanks[winnerKey];
-                
-                const batch = writeBatch(db);
-                const gameRef = doc(db, "tank-games", this.currentGameId);
-                
-                batch.update(gameRef, {
-                    [`${winnerKey}.score`]: winner.score + 1,
-                    mapSeed: Math.random(),
-                    p1: { ...this.tanks.p1.getState(), ...this.createTankState(1), health: 100, score: winnerKey === 'p2' ? this.tanks.p1.score : this.tanks.p1.score + 1 },
-                    p2: { ...this.tanks.p2.getState(), ...this.createTankState(2), health: 100, score: winnerKey === 'p1' ? this.tanks.p2.score : this.tanks.p2.score + 1 }
-                });
-                
-                await batch.commit();
             }
 
             setupInputListeners() {
@@ -398,8 +439,7 @@
                 window.onkeyup = e => this.keys[e.code] = false;
                 this.canvas.onmousemove = e => {
                     const rect = this.canvas.getBoundingClientRect();
-                    this.mouse.x = e.clientX - rect.left;
-                    this.mouse.y = e.clientY - rect.top;
+                    this.mouse.x = e.clientX - rect.left; this.mouse.y = e.clientY - rect.top;
                 };
                 this.canvas.onmousedown = () => this.mouse.down = true;
                 this.canvas.onmouseup = () => this.mouse.down = false;
@@ -408,7 +448,7 @@
             cleanup() {
                 if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
                 if (this.gameListener) this.gameListener();
-                Object.assign(this, { animationFrameId: null, gameListener: null, currentGameId: null, playerNumber: null, myReadyId: null, tanks: {}, keys: {}, mouse: {} });
+                Object.assign(this, { animationFrameId: null, gameListener: null, currentGameId: null, playerNumber: null, myLobbyId: null, tanks: {}, keys: {}, mouse: {} });
             }
 
             returnToLobby() {
@@ -419,17 +459,13 @@
         }
 
         class Tank {
-            constructor(state, game) { this.game = game; this.size = 40; this.turretLength = 40; this.syncState(state); }
+            constructor(state, game) { this.game = game; this.size = 40; this.turretLength = 35; this.speed = 3; this.syncState(state); }
             syncState(state) { Object.assign(this, state); }
             getState() { return { uid: this.uid, username: this.username, score: this.score, x: this.x, y: this.y, angle: this.angle, turretAngle: this.turretAngle, health: this.health, lastShot: this.lastShot }; }
             
-            update() {
-                if (this.health <= 0) {
-                    this.game.handlePlayerDeath(this.uid === this.game.tanks.p1.uid ? 'p1' : 'p2');
-                }
-            }
+            update() { /* Logic handled by Game class for sync */ }
             
-            handleControls(keys, mouse) {
+            handleControls(keys, mouse, walls) {
                 let dx = 0; let dy = 0;
                 if (keys['KeyW'] || keys['KeyZ']) dy -= 1;
                 if (keys['KeyS']) dy += 1;
@@ -438,37 +474,41 @@
                 
                 if (dx !== 0 || dy !== 0) {
                     const moveAngle = Math.atan2(dy, dx);
-                    this.x += Math.cos(moveAngle) * 3;
-                    this.y += Math.sin(moveAngle) * 3;
+                    const newX = this.x + Math.cos(moveAngle) * this.speed;
+                    const newY = this.y + Math.sin(moveAngle) * this.speed;
+                    if (!this.checkWallCollision(newX, newY, walls)) {
+                        this.x = newX;
+                        this.y = newY;
+                    }
                     this.angle = moveAngle;
                 }
                 
-                this.turretAngle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
+                this.turretAngle = Math.atan2(mouse.y - (this.y + this.size/2), mouse.x - (this.x + this.size/2));
 
                 if (mouse.down && Date.now() - this.lastShot > 500) {
                     this.shoot();
                     this.lastShot = Date.now();
                 }
-
-                // Wall collision
-                this.game.walls.forEach(wall => {
-                    if (this.x < wall.x + wall.w && this.x + this.size > wall.x && this.y < wall.y + wall.h && this.y + this.size > wall.y) {
-                        this.x -= Math.cos(this.angle) * 3;
-                        this.y -= Math.sin(this.angle) * 3;
-                    }
-                });
             }
             
+            checkWallCollision(x, y, walls) {
+                for (const wall of walls) {
+                    if (x < wall.x + wall.w && x + this.size > wall.x && y < wall.y + wall.h && y + this.size > wall.y) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
             async shoot() {
-                const bulletId = doc(collection(db, "dummy")).id; // Generate a unique ID
+                const bulletId = doc(collection(db, "dummy")).id;
                 const bullet = {
-                    id: bulletId,
                     owner: this.game.playerNumber === 1 ? 'p1' : 'p2',
                     x: this.x + this.size / 2 + Math.cos(this.turretAngle) * this.turretLength,
                     y: this.y + this.size / 2 + Math.sin(this.turretAngle) * this.turretLength,
-                    vx: Math.cos(this.turretAngle) * 10,
-                    vy: Math.sin(this.turretAngle) * 10,
-                    size: 8,
+                    vx: Math.cos(this.turretAngle) * 12,
+                    vy: Math.sin(this.turretAngle) * 12,
+                    size: 10,
                     life: 100
                 };
                 await updateDoc(doc(db, "tank-games", this.game.currentGameId), {
@@ -477,29 +517,33 @@
             }
 
             draw(ctx) {
-                // Body
                 ctx.save();
                 ctx.translate(this.x + this.size/2, this.y + this.size/2);
                 ctx.rotate(this.angle);
                 ctx.fillStyle = this.uid === this.game.tanks.p1.uid ? '#4ddbff' : '#ff9933';
                 ctx.fillRect(-this.size/2, -this.size/2, this.size, this.size);
+                ctx.fillStyle = '#333';
+                ctx.fillRect(-this.size/2, -this.size/2 + 5, this.size, 5);
+                ctx.fillRect(-this.size/2, this.size/2 - 10, this.size, 5);
                 ctx.restore();
                 
-                // Turret
                 ctx.save();
                 ctx.translate(this.x + this.size/2, this.y + this.size/2);
                 ctx.rotate(this.turretAngle);
                 ctx.fillStyle = '#999';
-                ctx.fillRect(0, -5, this.turretLength, 10);
+                ctx.fillRect(10, -5, this.turretLength, 10);
+                ctx.fillStyle = '#666';
+                ctx.beginPath();
+                ctx.arc(0, 0, 12, 0, 2 * Math.PI);
+                ctx.fill();
                 ctx.restore();
                 
-                // Username
                 ctx.fillStyle = '#FFF'; ctx.font = '14px Orbitron'; ctx.textAlign = 'center';
                 ctx.fillText(this.username, this.x + this.size/2, this.y - 20);
 
-                // Health bar
                 ctx.fillStyle = '#222'; ctx.fillRect(this.x, this.y - 10, this.size, 5);
-                ctx.fillStyle = 'red'; ctx.fillRect(this.x, this.y - 10, this.size * (this.health/100), 5);
+                ctx.fillStyle = this.health > 50 ? 'lime' : this.health > 20 ? 'orange' : 'red';
+                ctx.fillRect(this.x, this.y - 10, this.size * (this.health/100), 5);
             }
         }
         
