@@ -454,7 +454,6 @@
     </style>
 </head>
 <body>
-    <!-- Audio en arrière-plan -->
     <audio id="backgroundMusic" loop preload="auto" style="display: none;">
         <source src="musiquedeouff.mp3" type="audio/mpeg">
         Votre navigateur ne supporte pas l'audio.
@@ -464,17 +463,14 @@
     <div class="hallucination-overlay"></div>
     
     <div class="container">
-        <!-- Vagues de l'enfer -->
         <div class="hell-wave" style="animation-delay: 0s;"></div>
         <div class="hell-wave" style="animation-delay: -1s;"></div>
         <div class="hell-wave" style="animation-delay: -2s;"></div>
         <div class="hell-wave" style="animation-delay: -0.5s;"></div>
         <div class="hell-wave" style="animation-delay: -1.5s;"></div>
         
-        <!-- Texte AUTISM principal -->
         <div class="autism-text">AUTISM</div>
         
-        <!-- Éléments qui tournent -->
         <div class="spinning-element" style="top: 10%; left: 5%; animation-delay: 0s;">🌀</div>
         <div class="spinning-element" style="top: 15%; right: 10%; animation-delay: -1s;">⚡</div>
         <div class="spinning-element" style="top: 80%; left: 8%; animation-delay: -2s;">🔥</div>
@@ -486,7 +482,6 @@
         <div class="spinning-element" style="top: 90%; right: 40%; animation-delay: -2.5s;">🎭</div>
         <div class="spinning-element" style="top: 5%; right: 50%; animation-delay: -3.5s;">🎪</div>
         
-        <!-- Éléments qui grossissent -->
         <div class="growing-element" style="top: 25%; left: 15%; animation-delay: 0s;">🌊</div>
         <div class="growing-element" style="top: 70%; right: 20%; animation-delay: -1s;">🏖️</div>
         <div class="growing-element" style="top: 50%; left: 85%; animation-delay: -2s;">🐚</div>
@@ -496,7 +491,6 @@
         <div class="growing-element" style="top: 65%; left: 70%; animation-delay: -0.5s;">🌺</div>
         <div class="growing-element" style="top: 15%; left: 80%; animation-delay: -3.5s;">🦜</div>
         
-        <!-- Éléments qui pulsent -->
         <div class="pulsing-element" style="top: 20%; left: 30%; animation-delay: 0s;">🏝️</div>
         <div class="pulsing-element" style="top: 55%; right: 35%; animation-delay: -1s;">🐬</div>
         <div class="pulsing-element" style="top: 75%; left: 60%; animation-delay: -2s;">🌴</div>
@@ -505,21 +499,17 @@
         <div class="pulsing-element" style="top: 40%; left: 40%; animation-delay: -2.3s;">🦑</div>
         <div class="pulsing-element" style="top: 90%; left: 50%; animation-delay: -1.2s;">🐢</div>
         
-        <!-- Effets supplémentaires -->
         <div class="screen-glitch"></div>
         
-        <!-- Spirales hypnotiques -->
         <div class="hypno-spiral" style="top: 20%; left: 10%;"></div>
         <div class="hypno-spiral" style="top: 60%; right: 15%; animation-delay: -2s;"></div>
         <div class="hypno-spiral" style="top: 40%; left: 70%; animation-delay: -4s;"></div>
         <div class="hypno-spiral" style="top: 80%; left: 40%; animation-delay: -6s;"></div>
         
-        <!-- Laser beams -->
         <div class="laser-beam" style="top: 25%; animation-delay: 0s;"></div>
         <div class="laser-beam" style="top: 55%; animation-delay: -1s;"></div>
         <div class="laser-beam" style="top: 75%; animation-delay: -2s;"></div>
         
-        <!-- Étoiles filantes -->
         <div class="shooting-star" style="top: 10%; animation-delay: 0s;"></div>
         <div class="shooting-star" style="top: 30%; animation-delay: -1s;"></div>
         <div class="shooting-star" style="top: 50%; animation-delay: -2s;"></div>
@@ -555,8 +545,9 @@
         }
         
         // Démarrer l'audio dès la première interaction
-        document.addEventListener('click', startAudio, { once: false });
-        document.addEventListener('keydown', startAudio, { once: false });
+        // Changement de { once: false } à { once: true } pour click et keydown pour un meilleur nettoyage
+        document.addEventListener('click', startAudio, { once: true });
+        document.addEventListener('keydown', startAudio, { once: true });
         document.addEventListener('mousemove', startAudio, { once: true });
         
         // Curseur chaton kawaii
@@ -720,7 +711,8 @@
             }, 300);
             
             // Créer explosion de particules
-            for (let i = 0; i < 20; i++) {
+            // OPTIMISATION: Réduction à 10 particules
+            for (let i = 0; i < 10; i++) { 
                 setTimeout(() => {
                     const explosion = document.createElement('div');
                     explosion.className = 'explosion-particle';
@@ -771,7 +763,8 @@
             }
             
             // Générer des confettis au clic
-            for (let i = 0; i < 15; i++) {
+            // OPTIMISATION: Réduction à 8 confettis
+            for (let i = 0; i < 8; i++) {
                 setTimeout(() => {
                     createConfetti();
                 }, i * 50);
@@ -786,11 +779,11 @@
             }, 200);
         });
         
-        // Générateurs en continu
-        setInterval(createCrazyParticle, 300);
-        setInterval(createMatrixHardcore, 150);
-        setInterval(createConfetti, 800);
-        setInterval(createMagicBubble, 1200);
+        // Générateurs en continu (OPTIMISÉS pour la performance)
+        setInterval(createCrazyParticle, 500); // Était 300
+        setInterval(createMatrixHardcore, 300); // Était 150 (Gros gain de perf)
+        setInterval(createConfetti, 1000); // Était 800
+        setInterval(createMagicBubble, 1500); // Était 1200
         
         // Effets aléatoires
         setInterval(() => {
@@ -826,3 +819,6 @@
             titleAnimation++;
         }, 2000);
     </script>
+
+</body>
+</html>
