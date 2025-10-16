@@ -67,6 +67,7 @@
         .screen button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            box-shadow: none;
         }
 
         #character-select { display: flex; gap: 40px; }
@@ -143,7 +144,7 @@
             </div>
         </div>
         <p id="char-select-status" style="font-size: 1.5em; min-height: 2em;">En attente de votre choix...</p>
-        <button id="confirm-char-btn" disabled onclick="window.game.confirmCharacterSelection()">Confirmer</button>
+        <button id="confirm-char-btn" disabled onclick="window.game.confirmCharacterSelection()">Confirmer et Chercher une partie</button>
     </div>
 
     <div id="matchmaking-screen" class="screen hidden">
@@ -258,16 +259,30 @@
             
             setState(newState) {
                 this.state = newState;
-                Object.values(this.ui).forEach(el => el.classList.add('hidden'));
-                const screenToShow = this.ui[newState.toLowerCase().split('_')[0]];
-                if (screenToShow) screenToShow.classList.remove('hidden');
+                // Cache tous les écrans
+                for (const key in this.ui) {
+                    if (this.ui[key].classList && !this.ui[key].id.includes('hud')) {
+                        this.ui[key].classList.add('hidden');
+                    }
+                }
+                // Affiche le bon écran
+                switch(newState) {
+                    case 'LOADING': this.ui.loading.classList.remove('hidden'); break;
+                    case 'LOGIN': this.ui.login.classList.remove('hidden'); break;
+                    case 'CHAR_SELECT': this.ui.charSelect.classList.remove('hidden'); break;
+                    case 'MATCHMAKING': this.ui.matchmaking.classList.remove('hidden'); break;
+                    case 'PLAYING': this.ui.game.classList.remove('hidden'); break;
+                    case 'GAMEOVER': this.ui.gameOver.classList.remove('hidden'); break;
+                }
             }
 
             authCheck() {
                 onAuthStateChanged(auth, user => {
                     if (user) {
                         this.currentUser = user;
-                        if(this.state === 'LOADING' || this.state === 'LOGIN') this.setState('CHAR_SELECT');
+                        if(this.state === 'LOADING' || this.state === 'LOGIN') {
+                            this.setState('CHAR_SELECT');
+                        }
                     } else {
                         this.currentUser = null;
                         this.setState('LOGIN');
@@ -278,7 +293,6 @@
 
             selectCharacter(charId) {
                 if (this.state !== 'CHAR_SELECT') return;
-                
                 this.myCharId = charId;
                 document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
                 document.getElementById(`char-${charId}`).classList.add('selected');
@@ -287,7 +301,8 @@
             
             confirmCharacterSelection() {
                 if (!this.myCharId) return;
-                this.ui.charSelectStatus.textContent = `Vous avez choisi ${CHARACTERS[this.myCharId].name}.`;
+                this.ui.charSelectStatus.textContent = `Personnage choisi. En attente...`;
+                this.ui.confirmCharBtn.disabled = true;
                 this.startMatchmaking();
             }
 
@@ -308,6 +323,11 @@
                             status: "playing",
                             lastUpdate: serverTimestamp()
                         });
+                        this.listenToGame();
+                    } else {
+                        // C'est notre propre partie, on attend que quelqu'un rejoigne
+                        this.currentGameId = gameDoc.id;
+                        this.playerNumber = 1;
                         this.listenToGame();
                     }
                 } else {
@@ -332,6 +352,7 @@
             resetCharSelectUI() {
                 this.ui.charSelectStatus.textContent = 'En attente de votre choix...';
                 this.ui.confirmCharBtn.disabled = true;
+                this.myCharId = null;
                 document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
             }
 
@@ -410,7 +431,9 @@
                 this.projectiles = this.projectiles.filter(p => p.update());
                 this.particles = this.particles.filter(p => p.life > 0);
                 
-                this.sendStateToFirestore(myPlayer);
+                if (this.currentUser && myPlayer.uid === this.currentUser.uid) {
+                   this.sendStateToFirestore(myPlayer);
+                }
             }
 
             checkHitCollisions() {
@@ -429,7 +452,7 @@
 
                 this.projectiles.forEach(proj => {
                     const target = proj.owner === p1 ? p2 : p1;
-                    if(proj.collidesWith(target.getHurtbox())){
+                    if (target && proj.active && proj.collidesWith(target.getHurtbox())) {
                         target.takeHit(proj);
                         proj.active = false;
                     }
@@ -437,12 +460,12 @@
             }
 
             async sendStateToFirestore(myPlayerData) {
-                if (!myPlayerData || !this.currentGameId) return;
+                if (!myPlayerData || !this.currentGameId || this.state !== 'PLAYING') return;
                 const updatePath = this.playerNumber === 1 ? "p1" : "p2";
                 try {
                     const currentState = myPlayerData.getState();
-                    if(currentState.stocks <= 0 && this.state === 'PLAYING') {
-                         await updateDoc(doc(db, "ultimate-brawl-games", this.currentGameId), {
+                    if(currentState.stocks <= 0) {
+                        await updateDoc(doc(db, "ultimate-brawl-games", this.currentGameId), {
                             status: 'finished',
                             winner: this.playerNumber === 1 ? this.players.p2.uid : this.players.p1.uid
                         });
@@ -451,7 +474,7 @@
                             [updatePath]: currentState
                         });
                     }
-                } catch(e) { /* console.error("Firestore update failed:", e); */ }
+                } catch(e) { /* Error handling */ }
             }
 
             draw() {
@@ -487,7 +510,7 @@
                 this.cleanupGameLogic();
             }
             
-            async rematch() {
+            rematch() {
                 this.cleanup();
                 this.setState('CHAR_SELECT');
                 this.resetCharSelectUI();
@@ -530,6 +553,7 @@
             }
 
             syncState(state) {
+                if(!state.charId && this.charId) return; // Don't sync if new state is missing char but we have one
                 this.charId = state.charId;
                 if(this.charId) this.char = CHARACTERS[state.charId];
                 Object.assign(this, state);
@@ -551,16 +575,12 @@
                 else if (this.action === 'hitstun' || this.action === 'invincible') this.action = 'idle';
 
                 if (this.action === 'hitstun') {
-                    this.x += this.vx;
-                    this.y += this.vy;
+                    this.x += this.vx; this.y += this.vy;
                     this.vy += this.game.GRAVITY;
-                    this.vx *= 0.98;
-                    this.vy *= 0.99;
+                    this.vx *= 0.98; this.vy *= 0.99;
                 } else {
-                    this.x += this.vx;
-                    this.vx *= this.game.FRICTION;
-                    this.y += this.vy;
-                    this.vy += this.game.GRAVITY;
+                    this.x += this.vx; this.vx *= this.game.FRICTION;
+                    this.y += this.vy; this.vy += this.game.GRAVITY;
                 }
 
                 this.isGrounded = false;
@@ -618,7 +638,7 @@
                 this.actionFrame = attack.duration + (attack.startup || 0);
                 
                 setTimeout(() => {
-                    if (this.action !== `${type}_attack`) return;
+                    if (this.action !== `${type}_attack`) return; // Action was interrupted
                     this.hitbox = new Hitbox(this, attack);
                 }, (attack.startup || 0) * (1000/60));
             }
@@ -642,7 +662,7 @@
             }
 
             loseStock() {
-                if (this.stocks > 0) {
+                if (this.stocks > 0 && this.uid === this.game.currentUser.uid) {
                     this.stocks--;
                     this.respawn();
                 }
@@ -675,7 +695,7 @@
                 
                 ctx.restore();
 
-                if (this.hitbox) {
+                if (this.hitbox && this.uid === this.game.currentUser.uid) {
                     ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
                     ctx.fillRect(this.hitbox.x, this.hitbox.y, this.hitbox.w, this.hitbox.h);
                 }
