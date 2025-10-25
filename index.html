@@ -5,15 +5,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>L'Ordre de Frieren & Jägermeister</title>
   <meta name="description" content="Une secte sur la déesse Frieren et la boisson sacrée de la jagermeister qui méérite le respect et l'admiration.">
+  <meta name="keywords" content="Frieren, Jagermeister, secte, Ordre">
   <link rel="icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
   <style>
     *{box-sizing:border-box}
     body{background:linear-gradient(90deg,magenta,lime,cyan,yellow);font-family:"Comic Sans MS",cursive;color:#00f;margin:0;text-align:center}
     header{background:repeating-linear-gradient(45deg,red,red 10px,blue 10px,blue 20px);color:#0f0;padding:20px;border:5px dotted orange}
     h1{font-size:48px;text-shadow:3px 3px yellow;transform:skewX(-10deg)}
-    .secret-link{cursor:pointer;user-select:none}
-    nav a{display:inline-block;margin:5px 8px;color:#ff00ff;font-size:20px;font-weight:bold;background:#00ffff;padding:8px 15px;border:4px solid #ff00ff;border-radius:10px;cursor:pointer;text-decoration:none;text-shadow:2px 2px #000;box-shadow:4px 4px 0px #000000;transition:all 0.1s;transform:skewX(-5deg);text-transform:uppercase}
-    nav a:hover{background:#ffff00;color:#ff0000;transform:translateY(-2px) skewX(-5deg) scale(1.05);box-shadow:6px 6px 0px #ff00ff}
+    nav a{margin:0 10px;color:#f0f;font-size:22px;background:#0ff;padding:5px 10px;border:3px dashed purple;cursor:pointer;text-decoration:none}
     .card{margin:20px;padding:20px;border:7px ridge pink;background:linear-gradient(45deg,#f60,#0fc,#f0f);font-size:20px;display:none}
     .card.active{display:block}
     .auth-container{display:flex;justify-content:center;gap:20px;flex-wrap:wrap}
@@ -28,7 +29,7 @@
     .chat-layout{display:flex;max-width:1200px;margin:0 auto;gap:20px}
     #messages{height:400px;overflow-y:auto;background:rgba(255,255,255,0.2);border:5px groove lime;padding:10px;margin:20px 0;text-align:left}
     .message{background:rgba(0,255,255,0.3);margin:5px 0;padding:10px;border:2px solid purple;border-radius:10px;position:relative}
-    .message img,.message video{max-width:300px;max-height:300px;border:3px solid lime;border-radius:10px;cursor:pointer;margin:5px 0;display:block}
+    .message img{max-width:300px;max-height:300px;border:3px solid lime;border-radius:10px;cursor:pointer;margin:5px 0}
     .message .username{font-weight:bold;color:#f0f}
     .message .username.admin{color:#f00}
     .message .username.admin::after{content:" 👑"}
@@ -41,30 +42,104 @@
     .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;justify-content:center;align-items:center;z-index:9999}
     .modal-content{background:linear-gradient(45deg,#f60,#0fc,#f0f);padding:30px;border:5px solid lime;border-radius:20px;max-width:500px;width:90%}
     .admin-panel{background:rgba(255,0,0,0.2);border:5px solid red;padding:15px;margin:20px;border-radius:15px}
-    #user-info{margin-top:10px;padding-top:10px;clear:both}
-    .illumination-container{background:linear-gradient(45deg,#ff1493,#00ff00,#ffff00,#ff69b4);border:10px double #ff0000;padding:30px;margin:20px;border-radius:25px;box-shadow:0 0 50px #ff00ff;animation:glow 3s ease-in-out infinite alternate}
-    @keyframes glow{from{box-shadow:0 0 20px #ff00ff}to{box-shadow:0 0 50px #00ffff,0 0 80px #ff00ff}}
-    .illumination-button{background:linear-gradient(45deg,#ff4500,#ffd700,#ff1493);font-size:28px;padding:20px 40px;border:6px solid #00ff00;border-radius:50px;cursor:pointer;transition:all 0.3s;text-shadow:2px 2px #000;box-shadow:0 0 30px #ff00ff;animation:pulse 2s infinite}
-    .illumination-button:hover{transform:scale(1.1) rotate(5deg);box-shadow:0 0 50px #ffff00}
-    @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
-    .divine-prophecy{background:rgba(0,0,0,0.8);color:#00ff00;border:5px solid #ff00ff;padding:25px;margin:20px 0;border-radius:15px;font-size:22px;font-weight:bold;text-shadow:2px 2px #ff0000;min-height:100px;display:flex;align-items:center;justify-content:center;animation:prophecyGlow 4s ease-in-out infinite alternate}
-    @keyframes prophecyGlow{from{background:rgba(0,0,0,0.8);color:#00ff00;border-color:#ff00ff}to{background:rgba(128,0,128,0.3);color:#ffff00;border-color:#00ffff}}
-    .prophecy-number{position:absolute;top:10px;right:15px;background:#ff0000;color:#ffffff;padding:5px 10px;border-radius:50%;font-size:14px;font-weight:bold}
+    /* Fix pour l'espacement du message de bienvenue */
+    #user-info{margin-top:10px;padding-top:10px;clear:both;}
+
+    /* Styles pour l'onglet Illumination */
+    .illumination-container{
+      background:linear-gradient(45deg,#ff1493,#00ff00,#ffff00,#ff69b4);
+      border:10px double #ff0000;
+      padding:30px;
+      margin:20px;
+      border-radius:25px;
+      box-shadow:0 0 50px #ff00ff;
+      animation:glow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { box-shadow:0 0 20px #ff00ff; }
+      to { box-shadow:0 0 50px #00ffff, 0 0 80px #ff00ff; }
+    }
+
+    .illumination-button{
+      background:linear-gradient(45deg,#ff4500,#ffd700,#ff1493);
+      font-size:28px;
+      padding:20px 40px;
+      border:6px solid #00ff00;
+      border-radius:50px;
+      cursor:pointer;
+      transition:all 0.3s;
+      text-shadow:2px 2px #000;
+      box-shadow:0 0 30px #ff00ff;
+      animation:pulse 2s infinite;
+    }
+
+    .illumination-button:hover{
+      transform:scale(1.1) rotate(5deg);
+      box-shadow:0 0 50px #ffff00;
+    }
+
+    @keyframes pulse {
+      0% { transform:scale(1); }
+      50% { transform:scale(1.05); }
+      100% { transform:scale(1); }
+    }
+
+    .divine-prophecy{
+      background:rgba(0,0,0,0.8);
+      color:#00ff00;
+      border:5px solid #ff00ff;
+      padding:25px;
+      margin:20px 0;
+      border-radius:15px;
+      font-size:22px;
+      font-weight:bold;
+      text-shadow:2px 2px #ff0000;
+      min-height:100px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      animation:prophecyGlow 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes prophecyGlow {
+      from { 
+        background:rgba(0,0,0,0.8);
+        color:#00ff00;
+        border-color:#ff00ff;
+      }
+      to { 
+        background:rgba(128,0,128,0.3);
+        color:#ffff00;
+        border-color:#00ffff;
+      }
+    }
+
+    .prophecy-number{
+      position:absolute;
+      top:10px;
+      right:15px;
+      background:#ff0000;
+      color:#ffffff;
+      padding:5px 10px;
+      border-radius:50%;
+      font-size:14px;
+      font-weight:bold;
+    }
   </style>
 </head>
 <body>
   <div id="loading">🔥 Initialisation de la connexion cosmique... 🔥</div>
-  
+
   <div id="app" class="hidden">
     <header>
-      <h1>🔥 L'Ordre de Frieren <span class="secret-link" onclick="window.location.href='autism.html'">&</span> Jägermeister 🔥</h1>
+      <h1>🔥 L'Ordre Sacré de Frieren & Jägermeister 🔥</h1>
       <nav>
         <a onclick="show('home')">Accueil</a>
         <a onclick="show('creed')">Préceptes</a>
         <a onclick="show('rituals')">Rituels</a>
         <a onclick="show('offerings')">Offrandes</a>
         <a onclick="show('illumination')">🌟 Illumination 🌟</a>
-        <a href="jeu.html">Jeu</a>
         <a onclick="show('chat')" id="chat-nav" class="hidden">Chat</a>
         <a onclick="show('admin')" id="admin-nav" class="hidden">Admin 👑</a>
         <a onclick="show('auth')" id="auth-nav">Connexion</a>
@@ -99,7 +174,11 @@
         <div class="illumination-container">
           <h3>🌟✨ ILLUMINATION DIVINE ✨🌟</h3>
           <p style="font-size:18px;margin:20px 0;">Que la déesse Frieren vous révèle les secrets cosmiques de l'existence !</p>
-          <button class="illumination-button" onclick="generateProphecy()">🔮 RÉVÉLATION DIVINE 🔮</button>
+
+          <button class="illumination-button" onclick="generateProphecy()">
+            🔮 RÉVÉLATION DIVINE 🔮
+          </button>
+
           <div id="prophecy-display" class="divine-prophecy" style="display:none;">
             <div class="prophecy-number" id="prophecy-counter">1</div>
             <div id="prophecy-text">Cliquez sur le bouton pour recevoir votre illumination...</div>
@@ -135,7 +214,7 @@
         <div class="admin-panel">
           <h3>👑 Panel Admin</h3>
           <button onclick="clearAllMessages()">🗑️ Vider Chat</button>
-          <button onclick="showUserManagement()">👥 Gérer Utilisateurs</button>
+          <button onclick="showUserManagement()">👥 Mute Utilisateurs</button>
         </div>
       </div>
 
@@ -154,8 +233,8 @@
             <div id="messages"></div>
             <div>
               <input type="text" id="message-input" placeholder="Sagesse cosmique..." maxlength="500" style="width:50%;display:inline-block;">
-              <input type="file" id="image-input" accept="image/*,video/*,audio/*,.gif,.mp4,.webm,.pdf,.zip" style="display:none;" multiple>
-              <button onclick="document.getElementById('image-input').click()" style="width:20%;background:#ff69b4;">📎 Fichiers</button>
+              <input type="file" id="image-input" accept="image/*,.gif" style="display:none;" multiple>
+              <button onclick="document.getElementById('image-input').click()" style="width:20%;background:#ff69b4;">📷</button>
               <button onclick="sendMessage()" style="width:20%;">🚀</button>
             </div>
           </div>
@@ -172,18 +251,11 @@
     </footer>
   </div>
 
-  <div id="user-admin-modal" class="modal hidden">
+  <!-- Modals -->
+  <div id="mute-modal" class="modal hidden">
     <div class="modal-content">
-      <h3>👑 Gérer Utilisateur</h3>
-      <p id="user-admin-info"></p>
-      <input type="text" id="new-username" placeholder="Nouveau pseudo">
-      <button onclick="changeUsername()">Changer Pseudo</button>
-      <hr>
-      <p><strong>Contrôle du compte :</strong></p>
-      <button onclick="impersonateUser()">Prendre le contrôle</button>
-      <button onclick="stopImpersonating()">Arrêter le contrôle</button>
-      <hr>
-      <p><strong>Mute :</strong></p>
+      <h3>🔇 Muter Utilisateur</h3>
+      <p id="mute-user-info"></p>
       <input type="text" id="mute-reason" placeholder="Raison (optionnel)">
       <select id="mute-duration">
         <option value="300">5 minutes</option>
@@ -193,10 +265,11 @@
         <option value="604800">7 jours</option>
         <option value="permanent">Permanent</option>
       </select>
-      <button onclick="confirmMute()">🔇 Mute</button>
-      <button onclick="unmuteUser()">🔊 Démute</button>
-      <hr>
-      <button onclick="closeModal()">❌ Fermer</button>
+      <div>
+        <button onclick="confirmMute()">🔇 Mute</button>
+        <button onclick="unmuteUser()">🔊 Démute</button>
+        <button onclick="closeModal()">❌ Annuler</button>
+      </div>
     </div>
   </div>
 
@@ -221,19 +294,22 @@
       apiKey: "AIzaSyBhyxeEHBKrhuECJKt2d7NwSN7lcv39IX0",
       authDomain: "frieren-2-79e0c.firebaseapp.com",
       projectId: "frieren-2-79e0c",
-      storageBucket: "frieren-2-79e0c.appspot.com",
+      storageBucket: "frieren-2-79e0c.firebasestorage.app",
       messagingSenderId: "861104473745",
       appId: "1:861104473745:web:377da7b0daaf5570572130"
     };
 
     const ADMIN_UID = '5yv18zQAJBZZUIwKbFiURFQeFit2';
     let currentUser = null, isAdmin = false, messagesListener = null, usersListener = null;
-    let currentAdminTarget = null, currentEditId = null, impersonatedUser = null;
+    let currentMuteTarget = null, currentEditId = null;
     let app, auth, db, storage;
+
+    // Compteur de prophéties
     let prophecyCounter = 1;
 
     const $ = id => document.getElementById(id);
 
+    // Générateur de prophéties divines
     function generateProphecy() {
       const subjects = [
         "La déesse Frieren", "L'élixir sacré de Jägermeister", "Les vapeurs éthyliques", 
@@ -273,21 +349,25 @@
         "Et que les dés roulent toujours en votre faveur cosmique.", "Amen et que la fumée vous enveloppe de sagesse."
       ];
 
+      // Construction de la prophétie
       const prophecy = `${getRandomElement(subjects)} ${getRandomElement(verbs)} ${getRandomElement(wisdom1)} ${getRandomElement(actions)} ${getRandomElement(consequences)}. ${getRandomElement(mysticalEndings)}`;
 
+      // Affichage avec animation
       const display = document.getElementById('prophecy-display');
       const textElement = document.getElementById('prophecy-text');
       const counterElement = document.getElementById('prophecy-counter');
-      
+
+      // Animation de disparition
       display.style.opacity = '0';
-      
+
       setTimeout(() => {
         textElement.innerHTML = prophecy;
         counterElement.textContent = prophecyCounter;
         display.style.display = 'flex';
         display.style.opacity = '1';
         prophecyCounter++;
-        
+
+        // Effet sonore visuel (simulation)
         display.style.transform = 'scale(1.1)';
         setTimeout(() => {
           display.style.transform = 'scale(1)';
@@ -305,13 +385,14 @@
         auth = getAuth(app);
         db = getFirestore(app);
         storage = getStorage(app);
-        
+
         console.log('Firebase initialized successfully');
-        
+        console.log('Storage bucket:', storage.app.options.storageBucket);
+
         onAuthStateChanged(auth, async (user) => {
           $('loading').classList.add('hidden');
           $('app').classList.remove('hidden');
-          
+
           if (user) {
             currentUser = user;
             isAdmin = user.uid === ADMIN_UID;
@@ -335,19 +416,25 @@
       $('logout-nav').classList.remove('hidden');
       $('chat-nav').classList.remove('hidden');
       $('user-info').classList.remove('hidden');
-      
+
       if (isAdmin) $('admin-nav').classList.remove('hidden');
+
+      // Afficher/masquer le panel admin des prophéties
+      const adminProphecyPanel = document.getElementById('admin-prophecy-panel');
+      if (adminProphecyPanel) {
+        adminProphecyPanel.style.display = isAdmin ? 'block' : 'none';
+      }
       
       const name = user.displayName || user.email.split('@')[0];
       $('welcome-msg').textContent = `🌟 ${name}${isAdmin ? ' 👑' : ''} - Connecté !`;
-      
+
       await setDoc(doc(db, 'users', user.uid), {
         username: name,
         status: 'online',
         lastSeen: serverTimestamp(),
         isAdmin
       }, { merge: true });
-      
+
       setupChat();
       setupUsers();
     }
@@ -358,7 +445,7 @@
       $('chat-nav').classList.add('hidden');
       $('admin-nav').classList.add('hidden');
       $('user-info').classList.add('hidden');
-      
+
       if (messagesListener) messagesListener();
       if (usersListener) usersListener();
       show('home');
@@ -370,7 +457,7 @@
         const username = $('register-username').value.trim();
         const email = $('register-email').value.trim();
         const password = $('register-password').value;
-        
+
         try {
           const cred = await createUserWithEmailAndPassword(auth, email, password);
           await updateProfile(cred.user, { displayName: username });
@@ -385,7 +472,7 @@
         e.preventDefault();
         const email = $('login-email').value.trim();
         const password = $('login-password').value;
-        
+
         try {
           await signInWithEmailAndPassword(auth, email, password);
           show('home');
@@ -403,7 +490,7 @@
         const msgs = $('messages');
         msgs.innerHTML = '';
         const messages = [];
-        
+
         snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
         messages.reverse().forEach(addMessage);
         msgs.scrollTop = msgs.scrollHeight;
@@ -415,6 +502,7 @@
 
       $('image-input').addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
+          console.log('Files selected:', e.target.files.length);
           sendImages(Array.from(e.target.files));
         }
       });
@@ -425,13 +513,13 @@
         const list = $('users-list');
         list.innerHTML = '';
         const users = [];
-        
+
         snap.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
         users.sort((a, b) => {
           if (a.status !== b.status) return a.status === 'online' ? -1 : 1;
           return (a.username || '').localeCompare(b.username || '');
         });
-        
+
         users.forEach(user => {
           const div = document.createElement('div');
           div.className = `user-item ${user.status || 'offline'}`;
@@ -447,45 +535,21 @@
     function addMessage(msg) {
       const div = document.createElement('div');
       div.className = 'message';
-      
+
       const time = msg.timestamp ? new Date(msg.timestamp.seconds * 1000).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}) : 'Now';
       const canEdit = currentUser && (msg.userId === currentUser.uid || isAdmin);
-      
+
       let content = `
         <div style="float:right;font-size:12px;color:#666;">${time}</div>
         <div class="username ${msg.isAdmin ? 'admin' : ''}">${msg.username}:</div>
       `;
-      
-      // 🎬 AFFICHAGE SELON LE TYPE DE MÉDIA
-      if (msg.type === 'image' && msg.fileUrl) {
-        content += `<img src="${msg.fileUrl}" alt="${msg.fileName || 'Image'}" onclick="window.open('${msg.fileUrl}','_blank')">`;
-      } 
-      else if (msg.type === 'video' && msg.fileUrl) {
-        content += `
-          <video controls style="max-width:400px;max-height:400px;border:3px solid lime;border-radius:10px;margin:5px 0;">
-            <source src="${msg.fileUrl}" type="${msg.fileType || 'video/mp4'}">
-            Votre navigateur ne supporte pas la vidéo.
-          </video>
-        `;
-      }
-      else if (msg.type === 'audio' && msg.fileUrl) {
-        content += `
-          <audio controls style="width:100%;max-width:400px;margin:5px 0;">
-            <source src="${msg.fileUrl}" type="${msg.fileType || 'audio/mpeg'}">
-            Votre navigateur ne supporte pas l'audio.
-          </audio>
-        `;
-      }
-      else if (msg.fileUrl) {
-        const fileSize = msg.fileSize ? (msg.fileSize / 1024).toFixed(2) + ' KB' : '';
-        content += `
-          <a href="${msg.fileUrl}" target="_blank" style="display:block;background:rgba(0,255,0,0.2);padding:10px;border:2px solid lime;border-radius:8px;text-decoration:none;color:#0ff;margin:5px 0;">
-            📎 ${msg.fileName || 'Fichier'}
-            ${fileSize ? `<span style="font-size:12px;color:#666;"> (${fileSize})</span>` : ''}
-          </a>
-        `;
-      }
-      else if (msg.text) {
+
+      if (msg.type === 'image' && msg.imageUrl) {
+        content += `<img src="${msg.imageUrl}" alt="${msg.fileName || 'Image'}" onclick="window.open('${msg.imageUrl}','_blank')" onerror="this.style.display='none'; console.error('Image failed to load:', '${msg.imageUrl}')">`;
+        if (msg.fileName) {
+          content += `<div style="font-size:12px;color:#666;margin-top:5px;">📎 ${msg.fileName}</div>`;
+        }
+      } else if (msg.text) {
         content += `<div>${msg.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
       }
 
@@ -494,20 +558,20 @@
         if (msg.type === 'text') content += `<button onclick="editMessage('${msg.id}')" style="background:#fdcb6e;">✏️</button>`;
         content += `<button onclick="deleteMessage('${msg.id}')" style="background:#d63031;">🗑️</button></div>`;
       }
-      
+
       div.innerHTML = content;
       $('messages').appendChild(div);
     }
 
     async function sendMessage() {
-      const userToSendAs = impersonatedUser || currentUser;
-      if (!userToSendAs) return;
+      if (!currentUser) return;
 
       const input = $('message-input');
       const text = input.value.trim();
       if (!text) return;
 
-      const userDoc = await getDoc(doc(db, 'users', userToSendAs.uid));
+      // Check mute
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
       if (userDoc.exists() && userDoc.data().mutedUntil) {
         const muteEnd = userDoc.data().mutedUntil.toDate();
         if (muteEnd > new Date()) {
@@ -515,15 +579,15 @@
           return;
         }
       }
-      
+
       try {
         await addDoc(collection(db, 'messages'), {
           text,
-          username: userDoc.data().username || userToSendAs.email.split('@')[0],
-          userId: userToSendAs.uid,
+          username: currentUser.displayName || currentUser.email.split('@')[0],
+          userId: currentUser.uid,
           timestamp: serverTimestamp(),
           type: 'text',
-          isAdmin: userDoc.data().isAdmin || false
+          isAdmin
         });
         input.value = '';
       } catch (error) {
@@ -533,87 +597,87 @@
     }
 
     async function sendImages(files) {
-      const userToSendAs = impersonatedUser || currentUser;
-      if (!userToSendAs) {
-        showError('Vous devez être connecté pour envoyer des fichiers');
+      if (!currentUser) {
+        showError('Vous devez être connecté pour envoyer des images');
         return;
       }
 
-      const userDoc = await getDoc(doc(db, 'users', userToSendAs.uid));
-      if (userDoc.exists() && userDoc.data().mutedUntil) {
-        const muteEnd = userDoc.data().mutedUntil.toDate();
-        if (muteEnd > new Date()) {
-          showError(`Vous êtes mute jusqu'à ${muteEnd.toLocaleString()}`);
-          return;
+      console.log('Attempting to send', files.length, 'images');
+
+      // Check mute
+      try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists() && userDoc.data().mutedUntil) {
+          const muteEnd = userDoc.data().mutedUntil.toDate();
+          if (muteEnd > new Date()) {
+            showError(`Vous êtes mute jusqu'à ${muteEnd.toLocaleString()}`);
+            return;
+          }
         }
+      } catch (error) {
+        console.error('Error checking mute status:', error);
       }
-      
+
       for (const file of files) {
-        if (file.size > 10 * 1024 * 1024) {
-          showError(`${file.name} trop lourd (max 10MB)`);
+        console.log('Processing file:', file.name, 'Size:', file.size, 'Type:', file.type);
+
+        if (file.size > 5 * 1024 * 1024) {
+          showError(`${file.name} trop lourd (max 5MB)`);
           continue;
         }
-        
-        const allowedTypes = [
-          'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/bmp',
-          'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
-          'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg',
-          'application/pdf', 'text/plain',
-          'application/zip', 'application/x-rar-compressed'
-        ];
-        
-        const isAllowed = allowedTypes.includes(file.type) || 
-                          file.name.toLowerCase().endsWith('.gif') ||
-                          file.name.toLowerCase().endsWith('.mp4') ||
-                          file.name.toLowerCase().endsWith('.webm');
-        
-        if (!isAllowed) {
-          showError(`${file.name} : type de fichier non autorisé`);
+
+        if (!file.type.startsWith('image/')) {
+          showError(`${file.name} n'est pas une image valide`);
           continue;
         }
-        
+
         try {
+          // Create unique filename
           const timestamp = Date.now();
           const randomId = Math.random().toString(36).substr(2, 9);
-          const fileExtension = file.name.split('.').pop().toLowerCase();
+          const fileExtension = file.name.split('.').pop();
           const fileName = `${timestamp}_${randomId}.${fileExtension}`;
-          const path = `files/${userToSendAs.uid}/${fileName}`;
-          
+          const path = `images/${currentUser.uid}/${fileName}`;
+
+          console.log('Uploading to path:', path);
+
+          // Upload to Firebase Storage
           const storageRef = ref(storage, path);
           const snapshot = await uploadBytes(storageRef, file);
+          console.log('Upload successful, snapshot:', snapshot);
+
+          // Get download URL
           const url = await getDownloadURL(snapshot.ref);
-          
-          let mediaType = 'file';
-          if (file.type.startsWith('image/') || file.name.toLowerCase().endsWith('.gif')) {
-            mediaType = 'image';
-          } else if (file.type.startsWith('video/')) {
-            mediaType = 'video';
-          } else if (file.type.startsWith('audio/')) {
-            mediaType = 'audio';
-          }
-          
-          await addDoc(collection(db, 'messages'), {
-            fileUrl: url,
+          console.log('Download URL obtained:', url);
+
+          // Save message to Firestore
+          const messageData = {
+            imageUrl: url,
             fileName: file.name,
             fileType: file.type,
-            fileSize: file.size,
-            mediaType: mediaType,
             storagePath: path,
-            username: userDoc.data().username || userToSendAs.email.split('@')[0],
-            userId: userToSendAs.uid,
+            username: currentUser.displayName || currentUser.email.split('@')[0],
+            userId: currentUser.uid,
             timestamp: serverTimestamp(),
-            type: mediaType,
-            isAdmin: userDoc.data().isAdmin || false
-          });
-          
-          showSuccess(`✅ ${file.name} envoyé !`);
+            type: 'image',
+            isAdmin
+          };
+
+          console.log('Saving message to Firestore:', messageData);
+
+          await addDoc(collection(db, 'messages'), messageData);
+          console.log('Message saved successfully');
+
         } catch (error) {
-          console.error('Error uploading file:', error);
-          showError(`❌ Erreur upload ${file.name}: ${error.message}`);
+          console.error('Detailed error uploading image:', error);
+          console.error('Error code:', error.code);
+          console.error('Error message:', error.message);
+          showError(`Erreur upload ${file.name}: ${error.message}`);
         }
       }
-      
+
       $('image-input').value = '';
+      showSuccess('Images traitées !');
     }
 
     async function deleteMessage(id) {
@@ -622,6 +686,7 @@
         await deleteDoc(doc(db, 'messages', id));
         showSuccess('Message supprimé');
       } catch (error) {
+        console.error('Error deleting message:', error);
         showError('Erreur suppression: ' + error.message);
       }
     }
@@ -635,6 +700,7 @@
           $('edit-modal').classList.remove('hidden');
         }
       } catch (error) {
+        console.error('Error editing message:', error);
         showError('Erreur: ' + error.message);
       }
     }
@@ -643,7 +709,7 @@
       if (!currentEditId) return;
       const newText = $('edit-text').value.trim();
       if (!newText) return showError('Texte vide');
-      
+
       try {
         await updateDoc(doc(db, 'messages', currentEditId), {
           text: newText,
@@ -652,6 +718,7 @@
         closeModal();
         showSuccess('Message modifié');
       } catch (error) {
+        console.error('Error updating message:', error);
         showError('Erreur: ' + error.message);
       }
     }
@@ -663,6 +730,7 @@
         await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
         showSuccess('Chat vidé');
       } catch (error) {
+        console.error('Error clearing messages:', error);
         showError('Erreur: ' + error.message);
       }
     }
@@ -671,12 +739,12 @@
       const snap = await getDocs(collection(db, 'users'));
       const list = $('users-management-list');
       list.innerHTML = '';
-      
+
       snap.forEach(doc => {
         const user = doc.data();
         const isMuted = user.mutedUntil && user.mutedUntil.toDate() > new Date();
         const muteText = isMuted ? ` (Mute jusqu'à ${user.mutedUntil.toDate().toLocaleString()})` : '';
-        
+
         const div = document.createElement('div');
         div.className = 'user-item';
         div.innerHTML = `
@@ -685,93 +753,70 @@
             <br><small>${doc.id}</small>
             <span style="color:red;">${muteText}</span>
           </div>
-          <button onclick="openUserAdmin('${doc.id}', '${user.username || 'Anonyme'}')">👑 Gérer</button>
+          <button onclick="openMute('${doc.id}', '${user.username || 'Anonyme'}')">${isMuted ? '🔊 Gérer' : '🔇 Mute'}</button>
         `;
         list.appendChild(div);
       });
-      
+
       show('user-management');
     }
 
-    function openUserAdmin(userId, username) {
-      if (userId === ADMIN_UID) return showError('Impossible de gérer un admin');
-      currentAdminTarget = userId;
-      $('user-admin-info').textContent = `Utilisateur: ${username}`;
-      $('user-admin-modal').classList.remove('hidden');
-    }
-
-    async function changeUsername() {
-      if (!currentAdminTarget) return;
-      const newUsername = $('new-username').value.trim();
-      if (!newUsername) return showError('Pseudo vide');
-
-      try {
-        await updateDoc(doc(db, 'users', currentAdminTarget), { username: newUsername });
-        showSuccess('Pseudo changé');
-        closeModal();
-        showUserManagement();
-      } catch (error) {
-        showError('Erreur: ' + error.message);
-      }
-    }
-
-    async function impersonateUser() {
-      if (!currentAdminTarget) return;
-      const userDoc = await getDoc(doc(db, 'users', currentAdminTarget));
-      impersonatedUser = { uid: currentAdminTarget, ...userDoc.data() };
-      showSuccess(`Vous contrôlez maintenant ${impersonatedUser.username}`);
-      closeModal();
-    }
-
-    function stopImpersonating() {
-      impersonatedUser = null;
-      showSuccess('Vous avez repris le contrôle de votre compte');
+    function openMute(userId, username) {
+      if (userId === ADMIN_UID) return showError('Impossible de mute un admin');
+      currentMuteTarget = userId;
+      $('mute-user-info').textContent = `Utilisateur: ${username}`;
+      $('mute-reason').value = '';
+      $('mute-modal').classList.remove('hidden');
     }
 
     async function confirmMute() {
-      if (!currentAdminTarget) return;
-      
+      if (!currentMuteTarget) return;
+
       const duration = $('mute-duration').value;
       const reason = $('mute-reason').value || 'Aucune raison';
-      
+
       let muteUntil;
       if (duration === 'permanent') {
         muteUntil = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000);
       } else {
         muteUntil = new Date(Date.now() + parseInt(duration) * 1000);
       }
-      
+
       try {
-        await updateDoc(doc(db, 'users', currentAdminTarget), {
+        await updateDoc(doc(db, 'users', currentMuteTarget), {
           mutedUntil: muteUntil,
           muteReason: reason,
           mutedBy: currentUser.uid
         });
+        closeModal();
         showSuccess('Utilisateur mute');
         showUserManagement();
       } catch (error) {
+        console.error('Error muting user:', error);
         showError('Erreur mute: ' + error.message);
       }
     }
 
     async function unmuteUser() {
-      if (!currentAdminTarget) return;
+      if (!currentMuteTarget) return;
       try {
-        await updateDoc(doc(db, 'users', currentAdminTarget), {
+        await updateDoc(doc(db, 'users', currentMuteTarget), {
           mutedUntil: null,
           muteReason: null,
           mutedBy: null
         });
+        closeModal();
         showSuccess('Utilisateur démute');
         showUserManagement();
       } catch (error) {
+        console.error('Error unmuting user:', error);
         showError('Erreur: ' + error.message);
       }
     }
 
     function closeModal() {
       document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
-      currentAdminTarget = null;
+      currentMuteTarget = null;
       currentEditId = null;
     }
 
@@ -789,6 +834,7 @@
     }
 
     function showError(msg) {
+      console.error('Error:', msg);
       const err = $('auth-error');
       err.textContent = msg;
       err.classList.remove('hidden');
@@ -796,6 +842,7 @@
     }
 
     function showSuccess(msg) {
+      console.log('Success:', msg);
       const div = document.createElement('div');
       div.className = 'success';
       div.textContent = msg;
@@ -804,6 +851,7 @@
       setTimeout(() => div.remove(), 3000);
     }
 
+    // Global functions
     window.show = show;
     window.logout = logout;
     window.sendMessage = sendMessage;
@@ -812,25 +860,31 @@
     window.confirmEdit = confirmEdit;
     window.clearAllMessages = clearAllMessages;
     window.showUserManagement = showUserManagement;
-    window.openUserAdmin = openUserAdmin;
-    window.changeUsername = changeUsername;
-    window.impersonateUser = impersonateUser;
-    window.stopImpersonating = stopImpersonating;
+    window.openMute = openMute;
     window.confirmMute = confirmMute;
     window.unmuteUser = unmuteUser;
     window.closeModal = closeModal;
     window.generateProphecy = generateProphecy;
 
+    // Event listeners
     window.addEventListener('beforeunload', async () => {
       if (currentUser) {
-        await setDoc(doc(db, 'users', currentUser.uid), { status: 'offline' }, { merge: true });
+        try {
+          await setDoc(doc(db, 'users', currentUser.uid), { status: 'offline' }, { merge: true });
+        } catch (error) {
+          console.error('Error setting offline status:', error);
+        }
       }
     });
 
     document.addEventListener('visibilitychange', async () => {
       if (currentUser) {
-        const status = document.hidden ? 'offline' : 'online';
-        await setDoc(doc(db, 'users', currentUser.uid), { status }, { merge: true });
+        try {
+          const status = document.hidden ? 'offline' : 'online';
+          await setDoc(doc(db, 'users', currentUser.uid), { status }, { merge: true });
+        } catch (error) {
+          console.error('Error updating visibility status:', error);
+        }
       }
     });
 
