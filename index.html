@@ -5,43 +5,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>L'Ordre de Frieren & Jägermeister</title>
   <meta name="description" content="Une secte sur la déesse Frieren et la boisson sacrée de la jagermeister qui méérite le respect et l'admiration.">
-  <meta name="keywords" content="Frieren, Jagermeister, secte, Ordre">
   <link rel="icon" href="/favicon.ico" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-  <link rel="manifest" href="/site.webmanifest" />
   <style>
     *{box-sizing:border-box}
     body{background:linear-gradient(90deg,magenta,lime,cyan,yellow);font-family:"Comic Sans MS",cursive;color:#00f;margin:0;text-align:center}
     header{background:repeating-linear-gradient(45deg,red,red 10px,blue 10px,blue 20px);color:#0f0;padding:20px;border:5px dotted orange}
     h1{font-size:48px;text-shadow:3px 3px yellow;transform:skewX(-10deg)}
     .secret-link{cursor:pointer;user-select:none}
-    
-    /* STYLE DES BOUTONS DE NAVIGATION CORRIGÉ */
-    nav a{
-      display: inline-block;
-      margin: 5px 8px;
-      color: #ff00ff; /* Magenta */
-      font-size: 20px;
-      font-weight: bold;
-      background: #00ffff; /* Cyan */
-      padding: 8px 15px;
-      border: 4px solid #ff00ff; /* Bordure Magenta */
-      border-radius: 10px;
-      cursor: pointer;
-      text-decoration: none;
-      text-shadow: 2px 2px #000; /* Ombre noire pour le contraste */
-      box-shadow: 4px 4px 0px #000000; /* Effet 3D */
-      transition: all 0.1s;
-      transform: skewX(-5deg); /* Légère inclinaison pour le style */
-      text-transform: uppercase;
-    }
-    nav a:hover {
-      background: #ffff00; /* Jaune au survol */
-      color: #ff0000; /* Rouge au survol */
-      transform: translateY(-2px) skewX(-5deg) scale(1.05); /* Effet Pop */
-      box-shadow: 6px 6px 0px #ff00ff; /* Ombre Pop Magenta */
-    }
-    
+    nav a{display:inline-block;margin:5px 8px;color:#ff00ff;font-size:20px;font-weight:bold;background:#00ffff;padding:8px 15px;border:4px solid #ff00ff;border-radius:10px;cursor:pointer;text-decoration:none;text-shadow:2px 2px #000;box-shadow:4px 4px 0px #000000;transition:all 0.1s;transform:skewX(-5deg);text-transform:uppercase}
+    nav a:hover{background:#ffff00;color:#ff0000;transform:translateY(-2px) skewX(-5deg) scale(1.05);box-shadow:6px 6px 0px #ff00ff}
     .card{margin:20px;padding:20px;border:7px ridge pink;background:linear-gradient(45deg,#f60,#0fc,#f0f);font-size:20px;display:none}
     .card.active{display:block}
     .auth-container{display:flex;justify-content:center;gap:20px;flex-wrap:wrap}
@@ -56,7 +28,7 @@
     .chat-layout{display:flex;max-width:1200px;margin:0 auto;gap:20px}
     #messages{height:400px;overflow-y:auto;background:rgba(255,255,255,0.2);border:5px groove lime;padding:10px;margin:20px 0;text-align:left}
     .message{background:rgba(0,255,255,0.3);margin:5px 0;padding:10px;border:2px solid purple;border-radius:10px;position:relative}
-    .message img{max-width:300px;max-height:300px;border:3px solid lime;border-radius:10px;cursor:pointer;margin:5px 0}
+    .message img,.message video{max-width:300px;max-height:300px;border:3px solid lime;border-radius:10px;cursor:pointer;margin:5px 0;display:block}
     .message .username{font-weight:bold;color:#f0f}
     .message .username.admin{color:#f00}
     .message .username.admin::after{content:" 👑"}
@@ -69,90 +41,15 @@
     .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;justify-content:center;align-items:center;z-index:9999}
     .modal-content{background:linear-gradient(45deg,#f60,#0fc,#f0f);padding:30px;border:5px solid lime;border-radius:20px;max-width:500px;width:90%}
     .admin-panel{background:rgba(255,0,0,0.2);border:5px solid red;padding:15px;margin:20px;border-radius:15px}
-    /* Fix pour l'espacement du message de bienvenue */
-    #user-info{margin-top:10px;padding-top:10px;clear:both;}
-    
-    /* Styles pour l'onglet Illumination */
-    .illumination-container{
-      background:linear-gradient(45deg,#ff1493,#00ff00,#ffff00,#ff69b4);
-      border:10px double #ff0000;
-      padding:30px;
-      margin:20px;
-      border-radius:25px;
-      box-shadow:0 0 50px #ff00ff;
-      animation:glow 3s ease-in-out infinite alternate;
-    }
-    
-    @keyframes glow {
-      from { box-shadow:0 0 20px #ff00ff; }
-      to { box-shadow:0 0 50px #00ffff, 0 0 80px #ff00ff; }
-    }
-    
-    .illumination-button{
-      background:linear-gradient(45deg,#ff4500,#ffd700,#ff1493);
-      font-size:28px;
-      padding:20px 40px;
-      border:6px solid #00ff00;
-      border-radius:50px;
-      cursor:pointer;
-      transition:all 0.3s;
-      text-shadow:2px 2px #000;
-      box-shadow:0 0 30px #ff00ff;
-      animation:pulse 2s infinite;
-    }
-    
-    .illumination-button:hover{
-      transform:scale(1.1) rotate(5deg);
-      box-shadow:0 0 50px #ffff00;
-    }
-    
-    @keyframes pulse {
-      0% { transform:scale(1); }
-      50% { transform:scale(1.05); }
-      100% { transform:scale(1); }
-    }
-    
-    .divine-prophecy{
-      background:rgba(0,0,0,0.8);
-      color:#00ff00;
-      border:5px solid #ff00ff;
-      padding:25px;
-      margin:20px 0;
-      border-radius:15px;
-      font-size:22px;
-      font-weight:bold;
-      text-shadow:2px 2px #ff0000;
-      min-height:100px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      animation:prophecyGlow 4s ease-in-out infinite alternate;
-    }
-    
-    @keyframes prophecyGlow {
-      from { 
-        background:rgba(0,0,0,0.8);
-        color:#00ff00;
-        border-color:#ff00ff;
-      }
-      to { 
-        background:rgba(128,0,128,0.3);
-        color:#ffff00;
-        border-color:#00ffff;
-      }
-    }
-    
-    .prophecy-number{
-      position:absolute;
-      top:10px;
-      right:15px;
-      background:#ff0000;
-      color:#ffffff;
-      padding:5px 10px;
-      border-radius:50%;
-      font-size:14px;
-      font-weight:bold;
-    }
+    #user-info{margin-top:10px;padding-top:10px;clear:both}
+    .illumination-container{background:linear-gradient(45deg,#ff1493,#00ff00,#ffff00,#ff69b4);border:10px double #ff0000;padding:30px;margin:20px;border-radius:25px;box-shadow:0 0 50px #ff00ff;animation:glow 3s ease-in-out infinite alternate}
+    @keyframes glow{from{box-shadow:0 0 20px #ff00ff}to{box-shadow:0 0 50px #00ffff,0 0 80px #ff00ff}}
+    .illumination-button{background:linear-gradient(45deg,#ff4500,#ffd700,#ff1493);font-size:28px;padding:20px 40px;border:6px solid #00ff00;border-radius:50px;cursor:pointer;transition:all 0.3s;text-shadow:2px 2px #000;box-shadow:0 0 30px #ff00ff;animation:pulse 2s infinite}
+    .illumination-button:hover{transform:scale(1.1) rotate(5deg);box-shadow:0 0 50px #ffff00}
+    @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+    .divine-prophecy{background:rgba(0,0,0,0.8);color:#00ff00;border:5px solid #ff00ff;padding:25px;margin:20px 0;border-radius:15px;font-size:22px;font-weight:bold;text-shadow:2px 2px #ff0000;min-height:100px;display:flex;align-items:center;justify-content:center;animation:prophecyGlow 4s ease-in-out infinite alternate}
+    @keyframes prophecyGlow{from{background:rgba(0,0,0,0.8);color:#00ff00;border-color:#ff00ff}to{background:rgba(128,0,128,0.3);color:#ffff00;border-color:#00ffff}}
+    .prophecy-number{position:absolute;top:10px;right:15px;background:#ff0000;color:#ffffff;padding:5px 10px;border-radius:50%;font-size:14px;font-weight:bold}
   </style>
 </head>
 <body>
@@ -161,7 +58,6 @@
   <div id="app" class="hidden">
     <header>
       <h1>🔥 L'Ordre de Frieren <span class="secret-link" onclick="window.location.href='autism.html'">&</span> Jägermeister 🔥</h1>
-
       <nav>
         <a onclick="show('home')">Accueil</a>
         <a onclick="show('creed')">Préceptes</a>
@@ -203,11 +99,7 @@
         <div class="illumination-container">
           <h3>🌟✨ ILLUMINATION DIVINE ✨🌟</h3>
           <p style="font-size:18px;margin:20px 0;">Que la déesse Frieren vous révèle les secrets cosmiques de l'existence !</p>
-          
-          <button class="illumination-button" onclick="generateProphecy()">
-            🔮 RÉVÉLATION DIVINE 🔮
-          </button>
-          
+          <button class="illumination-button" onclick="generateProphecy()">🔮 RÉVÉLATION DIVINE 🔮</button>
           <div id="prophecy-display" class="divine-prophecy" style="display:none;">
             <div class="prophecy-number" id="prophecy-counter">1</div>
             <div id="prophecy-text">Cliquez sur le bouton pour recevoir votre illumination...</div>
@@ -262,8 +154,8 @@
             <div id="messages"></div>
             <div>
               <input type="text" id="message-input" placeholder="Sagesse cosmique..." maxlength="500" style="width:50%;display:inline-block;">
-              <input type="file" id="image-input" accept="image/*,.gif" style="display:none;" multiple>
-              <button onclick="document.getElementById('image-input').click()" style="width:20%;background:#ff69b4;">📷</button>
+              <input type="file" id="image-input" accept="image/*,video/*,audio/*,.gif,.mp4,.webm,.pdf,.zip" style="display:none;" multiple>
+              <button onclick="document.getElementById('image-input').click()" style="width:20%;background:#ff69b4;">📎 Fichiers</button>
               <button onclick="sendMessage()" style="width:20%;">🚀</button>
             </div>
           </div>
@@ -338,13 +230,10 @@
     let currentUser = null, isAdmin = false, messagesListener = null, usersListener = null;
     let currentAdminTarget = null, currentEditId = null, impersonatedUser = null;
     let app, auth, db, storage;
-    
-    // Compteur de prophéties
     let prophecyCounter = 1;
 
     const $ = id => document.getElementById(id);
 
-    // Générateur de prophéties divines
     function generateProphecy() {
       const subjects = [
         "La déesse Frieren", "L'élixir sacré de Jägermeister", "Les vapeurs éthyliques", 
@@ -384,15 +273,12 @@
         "Et que les dés roulent toujours en votre faveur cosmique.", "Amen et que la fumée vous enveloppe de sagesse."
       ];
 
-      // Construction de la prophétie
       const prophecy = `${getRandomElement(subjects)} ${getRandomElement(verbs)} ${getRandomElement(wisdom1)} ${getRandomElement(actions)} ${getRandomElement(consequences)}. ${getRandomElement(mysticalEndings)}`;
 
-      // Affichage avec animation
       const display = document.getElementById('prophecy-display');
       const textElement = document.getElementById('prophecy-text');
       const counterElement = document.getElementById('prophecy-counter');
       
-      // Animation de disparition
       display.style.opacity = '0';
       
       setTimeout(() => {
@@ -402,7 +288,6 @@
         display.style.opacity = '1';
         prophecyCounter++;
         
-        // Effet sonore visuel (simulation)
         display.style.transform = 'scale(1.1)';
         setTimeout(() => {
           display.style.transform = 'scale(1)';
@@ -571,12 +456,36 @@
         <div class="username ${msg.isAdmin ? 'admin' : ''}">${msg.username}:</div>
       `;
       
-      if (msg.type === 'image' && msg.imageUrl) {
-        content += `<img src="${msg.imageUrl}" alt="${msg.fileName || 'Image'}" onclick="window.open('${msg.imageUrl}','_blank')">`;
-        if (msg.fileName) {
-          content += `<div style="font-size:12px;color:#666;margin-top:5px;">📎 ${msg.fileName}</div>`;
-        }
-      } else if (msg.text) {
+      // 🎬 AFFICHAGE SELON LE TYPE DE MÉDIA
+      if (msg.type === 'image' && msg.fileUrl) {
+        content += `<img src="${msg.fileUrl}" alt="${msg.fileName || 'Image'}" onclick="window.open('${msg.fileUrl}','_blank')">`;
+      } 
+      else if (msg.type === 'video' && msg.fileUrl) {
+        content += `
+          <video controls style="max-width:400px;max-height:400px;border:3px solid lime;border-radius:10px;margin:5px 0;">
+            <source src="${msg.fileUrl}" type="${msg.fileType || 'video/mp4'}">
+            Votre navigateur ne supporte pas la vidéo.
+          </video>
+        `;
+      }
+      else if (msg.type === 'audio' && msg.fileUrl) {
+        content += `
+          <audio controls style="width:100%;max-width:400px;margin:5px 0;">
+            <source src="${msg.fileUrl}" type="${msg.fileType || 'audio/mpeg'}">
+            Votre navigateur ne supporte pas l'audio.
+          </audio>
+        `;
+      }
+      else if (msg.fileUrl) {
+        const fileSize = msg.fileSize ? (msg.fileSize / 1024).toFixed(2) + ' KB' : '';
+        content += `
+          <a href="${msg.fileUrl}" target="_blank" style="display:block;background:rgba(0,255,0,0.2);padding:10px;border:2px solid lime;border-radius:8px;text-decoration:none;color:#0ff;margin:5px 0;">
+            📎 ${msg.fileName || 'Fichier'}
+            ${fileSize ? `<span style="font-size:12px;color:#666;"> (${fileSize})</span>` : ''}
+          </a>
+        `;
+      }
+      else if (msg.text) {
         content += `<div>${msg.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
       }
 
@@ -626,7 +535,7 @@
     async function sendImages(files) {
       const userToSendAs = impersonatedUser || currentUser;
       if (!userToSendAs) {
-        showError('Vous devez être connecté pour envoyer des images');
+        showError('Vous devez être connecté pour envoyer des fichiers');
         return;
       }
 
@@ -640,46 +549,71 @@
       }
       
       for (const file of files) {
-        if (file.size > 5 * 1024 * 1024) {
-          showError(`${file.name} trop lourd (max 5MB)`);
+        if (file.size > 10 * 1024 * 1024) {
+          showError(`${file.name} trop lourd (max 10MB)`);
           continue;
         }
         
-        if (!file.type.startsWith('image/')) {
-          showError(`${file.name} n'est pas une image valide`);
+        const allowedTypes = [
+          'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/bmp',
+          'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
+          'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg',
+          'application/pdf', 'text/plain',
+          'application/zip', 'application/x-rar-compressed'
+        ];
+        
+        const isAllowed = allowedTypes.includes(file.type) || 
+                          file.name.toLowerCase().endsWith('.gif') ||
+                          file.name.toLowerCase().endsWith('.mp4') ||
+                          file.name.toLowerCase().endsWith('.webm');
+        
+        if (!isAllowed) {
+          showError(`${file.name} : type de fichier non autorisé`);
           continue;
         }
         
         try {
           const timestamp = Date.now();
           const randomId = Math.random().toString(36).substr(2, 9);
-          const fileExtension = file.name.split('.').pop();
+          const fileExtension = file.name.split('.').pop().toLowerCase();
           const fileName = `${timestamp}_${randomId}.${fileExtension}`;
-          const path = `images/${userToSendAs.uid}/${fileName}`;
+          const path = `files/${userToSendAs.uid}/${fileName}`;
           
           const storageRef = ref(storage, path);
           const snapshot = await uploadBytes(storageRef, file);
           const url = await getDownloadURL(snapshot.ref);
           
+          let mediaType = 'file';
+          if (file.type.startsWith('image/') || file.name.toLowerCase().endsWith('.gif')) {
+            mediaType = 'image';
+          } else if (file.type.startsWith('video/')) {
+            mediaType = 'video';
+          } else if (file.type.startsWith('audio/')) {
+            mediaType = 'audio';
+          }
+          
           await addDoc(collection(db, 'messages'), {
-            imageUrl: url,
+            fileUrl: url,
             fileName: file.name,
             fileType: file.type,
+            fileSize: file.size,
+            mediaType: mediaType,
             storagePath: path,
             username: userDoc.data().username || userToSendAs.email.split('@')[0],
             userId: userToSendAs.uid,
             timestamp: serverTimestamp(),
-            type: 'image',
+            type: mediaType,
             isAdmin: userDoc.data().isAdmin || false
           });
+          
+          showSuccess(`✅ ${file.name} envoyé !`);
         } catch (error) {
-          console.error('Error uploading image:', error);
-          showError(`Erreur upload ${file.name}: ${error.message}`);
+          console.error('Error uploading file:', error);
+          showError(`❌ Erreur upload ${file.name}: ${error.message}`);
         }
       }
       
       $('image-input').value = '';
-      showSuccess('Images traitées !');
     }
 
     async function deleteMessage(id) {
