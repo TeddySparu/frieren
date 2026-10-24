@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/map",
+      "destination": "http://vivo-examined.tun.ply.gg:27930/"
+    },
+    {
+      "source": "/map/:path*",
+      "destination": "http://vivo-examined.tun.ply.gg:27930/:path*"
+    }
+  ]
+}
