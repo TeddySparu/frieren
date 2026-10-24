@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/map",
-      "destination": "http://vivo-examined.tun.ply.gg:27930/"
+      "destination": "https://31ff-2a02-8424-8a01-9b01-8df-3d0-3c71-a172.ngrok-free.app/"
     },
     {
       "source": "/map/:path*",
-      "destination": "http://vivo-examined.tun.ply.gg:27930/:path*"
+      "destination": "https://31ff-2a02-8424-8a01-9b01-8df-3d0-3c71-a172.ngrok-free.app/:path*"
     }
   ]
 }
